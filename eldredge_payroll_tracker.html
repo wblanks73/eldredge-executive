@@ -1,0 +1,2691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eldredge Cleaning — Payroll Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #f5f3ee;
+  --surface: #faf9f6;
+  --surface2: #ede9e0;
+  --surface3: #e2ddd3;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --ink: #1a1916;
+  --ink2: #5a574f;
+  --ink3: #9a9690;
+  --grn: #1a6b3a;
+  --grn-bg: #e8f4ed;
+  --red: #b02a2a;
+  --red-bg: #faeaea;
+  --amb: #8a5700;
+  --amb-bg: #fdf3e0;
+  --blu: #1d4e8a;
+  --blu-bg: #e8effa;
+  --pur: #5b2d8a;
+  --pur-bg: #f0eafa;
+  --ops-color: #1a6b3a;
+  --adm-color: #1d4e8a;
+  --trn-color: #8a5700;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;min-height:100vh}
+
+/* ── HEADER ── */
+header{background:var(--ink);color:#f5f3ee;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:baseline;gap:10px}
+.logo-mark{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.06em;color:#fff}
+.logo-mark span{color:#6ee7a0}
+.logo-sep{width:1px;height:14px;background:rgba(255,255,255,.2)}
+.logo-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase}
+.header-nav{display:flex;gap:2px}
+.hn{padding:6px 14px;border-radius:4px;border:none;background:none;color:rgba(255,255,255,.55);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08)}
+.hn.active{color:#fff;background:rgba(255,255,255,.14)}
+.header-actions{display:flex;gap:8px;align-items:center}
+.hbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:4px;border:1px solid rgba(255,255,255,.2);background:none;color:rgba(255,255,255,.75);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;cursor:pointer;transition:all .15s}
+.hbtn:hover{border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.08)}
+.hbtn.pri{background:#6ee7a0;border-color:#6ee7a0;color:#0a2a14;font-weight:600}
+.hbtn.pri:hover{background:#7ffcb3;border-color:#7ffcb3}
+
+/* ── MAIN LAYOUT ── */
+.main{padding:2rem;max-width:1440px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+
+/* ── WEEK SELECTOR BAR ── */
+.week-bar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 16px;margin-bottom:1.5rem;flex-wrap:wrap}
+.week-bar select,.week-bar input[type=text]{background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:5px 10px;outline:none}
+.week-bar select:focus,.week-bar input[type=text]:focus{border-color:var(--ink)}
+.week-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase}
+.week-bar .spacer{flex:1}
+
+/* ── HERO METRICS ── */
+.hero-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem}
+.hm{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.1rem 1.2rem;position:relative;overflow:hidden}
+.hm::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.hm.ytd-accent::after{background:linear-gradient(90deg,#1a6b3a,#1d4e8a)}
+.ytd-section{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem}
+.hm.rev::after{background:var(--grn)}
+.hm.ops::after{background:var(--ops-color)}
+.hm.adm::after{background:var(--adm-color)}
+.hm.trn::after{background:var(--trn-color)}
+.hm.tot::after{background:var(--ink)}
+.hm-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.hm-val{font-size:22px;font-weight:600;letter-spacing:-.02em;font-family:'IBM Plex Mono',monospace}
+.hm-sub{font-size:10px;color:var(--ink3);margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.hm.rev .hm-val{color:var(--grn)}
+.hm.ops .hm-val{color:var(--ops-color)}
+.hm.adm .hm-val{color:var(--adm-color)}
+.hm.trn .hm-val{color:var(--trn-color)}
+
+/* ── RATIO BADGES ── */
+.ratio-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.rb{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1rem 1.2rem;display:flex;align-items:center;gap:14px}
+.rb-gauge{position:relative;width:64px;height:64px;flex-shrink:0}
+.rb-gauge canvas{width:64px!important;height:64px!important}
+.rb-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600}
+.rb-info{flex:1}
+.rb-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.rb-pct{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;letter-spacing:-.02em}
+.rb-status{font-size:10px;margin-top:3px;display:flex;align-items:center;gap:4px}
+.rb-dot{width:5px;height:5px;border-radius:50%}
+.tbar{height:4px;background:var(--surface2);border-radius:2px;position:relative;margin-top:8px}
+.tbar-fill{height:100%;border-radius:2px;transition:width .4s ease}
+.tbar-tick{position:absolute;top:-3px;width:2px;height:10px;background:var(--amb)}
+
+/* ── 2-COL GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem}
+.card-title{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+
+/* ── EMPLOYEE TABLE ── */
+.emp-table{width:100%;border-collapse:collapse;font-size:12px}
+.emp-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);font-weight:400;white-space:nowrap}
+.emp-table th.r{text-align:right}
+.emp-table td{padding:8px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.emp-table tr:last-child td{border-bottom:none}
+.emp-table tr:hover td{background:var(--surface2)}
+.emp-table .r{text-align:right;font-family:'IBM Plex Mono',monospace}
+.emp-table .mono{font-family:'IBM Plex Mono',monospace}
+.cat-sel{border:1px solid var(--border2);border-radius:3px;background:var(--bg);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 6px;cursor:pointer;outline:none}
+.cat-sel:focus{border-color:var(--ink)}
+.cat-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.cb-ops{background:var(--grn-bg);color:var(--grn)}
+.cb-adm{background:var(--blu-bg);color:var(--blu)}
+.cb-trn{background:var(--amb-bg);color:var(--amb)}
+.cb-unk{background:var(--surface2);color:var(--ink3)}
+.pct-badge{display:inline-block;padding:1px 6px;border-radius:20px;font-family:'IBM Plex Mono',monospace;font-size:10px}
+.pbg{background:var(--grn-bg);color:var(--grn)}
+.pbw{background:var(--amb-bg);color:var(--amb)}
+.pbb{background:var(--red-bg);color:var(--red)}
+
+/* ── CHART ── */
+.ch-wrap{position:relative;height:220px}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px)}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:8px;width:min(640px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-header{padding:1.5rem 1.75rem 0;border-bottom:1px solid var(--border);padding-bottom:1rem;display:flex;align-items:flex-start;justify-content:space-between}
+.modal-header h2{font-size:16px;font-weight:600;color:var(--ink)}
+.modal-header .msub{font-size:12px;color:var(--ink3);margin-top:3px}
+.modal-close{background:none;border:none;color:var(--ink3);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:3px;line-height:1}
+.modal-close:hover{color:var(--ink);background:var(--surface2)}
+.modal-body{padding:1.5rem 1.75rem}
+.modal-foot{padding:0 1.75rem 1.5rem;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border);padding-top:1rem}
+
+/* ── FORM ELEMENTS ── */
+.field{margin-bottom:1rem}
+.field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:9px 11px;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--ink)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:4px;border:1px solid var(--border2);background:none;color:var(--ink2);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;cursor:pointer;transition:all .15s}
+.btn:hover{border-color:var(--ink);color:var(--ink);background:var(--surface2)}
+.btn.pri{background:var(--ink);border-color:var(--ink);color:#f5f3ee;font-weight:500}
+.btn.pri:hover{background:#2d2c28}
+.btn.sm{padding:4px 10px;font-size:10px}
+
+/* ── DROP ZONE ── */
+.drop-zone{border:2px dashed var(--border2);border-radius:6px;padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--ink);background:var(--surface2)}
+.imp-tabs{display:flex;gap:4px;margin-bottom:1rem}
+.imp-tab{padding:5px 14px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--ink3);font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s;letter-spacing:.05em}
+.imp-tab:hover{border-color:var(--ink2);color:var(--ink2)}
+.imp-tab.act{background:var(--ink);border-color:var(--ink);color:#fff}
+.paste-area{width:100%;min-height:160px;background:var(--bg);border:1.5px solid var(--border2);border-radius:6px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:12px;outline:none;resize:vertical;transition:border-color .2s;line-height:1.7}
+.paste-area:focus{border-color:var(--ink)}
+.paste-preview{margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.paste-ok{color:var(--grn)}.paste-err{color:var(--red)}
+.dz-icon{font-size:28px;margin-bottom:8px}
+.dz-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.dz-sub{font-size:11px;color:var(--ink3)}
+
+/* ── HISTORY TABLE ── */
+.hist-table{width:100%;border-collapse:collapse;font-size:12px}
+.hist-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:400}
+.hist-table th.r{text-align:right}
+.hist-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.hist-table tr:last-child td{border-bottom:none}
+.hist-table tr:hover td{background:var(--surface2);cursor:pointer}
+.hist-table tr.active-week td{background:var(--grn-bg)}
+.hist-table .mono{font-family:'IBM Plex Mono',monospace;font-size:11px}
+.hist-table .r{text-align:right}
+
+/* ── SETTINGS ── */
+.srow{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.srow:last-child{border-bottom:none}
+.slbl{font-size:13px;font-weight:500}
+.ssub{font-size:11px;color:var(--ink3);margin-top:2px}
+.sinput{background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:6px 10px;outline:none;width:80px;text-align:right}
+.sinput:focus{border-color:var(--ink)}
+.color-chip{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+
+/* ── EMPTY STATE ── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;text-align:center;gap:10px}
+.ei{font-size:36px;opacity:.3}
+.et{font-size:15px;color:var(--ink2);font-weight:500}
+.es{font-size:12px;color:var(--ink3);max-width:280px;line-height:1.6}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){.hero-grid{grid-template-columns:repeat(3,1fr)}.ratio-row{grid-template-columns:1fr 1fr}}
+@media(max-width:750px){.hero-grid{grid-template-columns:repeat(2,1fr)}.ratio-row,.g2,.g3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">Eldredge <span>Cleaning</span></div>
+    <div class="logo-sep"></div>
+    <div class="logo-sub">Payroll Intelligence</div>
+  </div>
+  <div class="header-nav">
+    <button class="hn active" onclick="showPage('dashboard',this)">Dashboard</button>
+    <button class="hn" onclick="showPage('employees',this)">Employees</button>
+    <button class="hn" onclick="showPage('prehire',this)">Pre-hire</button>
+    <button class="hn" onclick="showPage('history',this)">History</button>
+    <button class="hn" onclick="showPage('settings',this)">Settings</button>
+  </div>
+  <div class="header-actions">
+    <button class="hbtn" onclick="openSettings()">⚙ Targets</button>
+    <button class="hbtn pri" onclick="openImport()">↑ Load Week</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ══ DASHBOARD PAGE ══ -->
+  <div class="page active" id="page-dashboard">
+    <div id="dash-empty" class="empty" style="display:none">
+      <div class="ei">📊</div>
+      <div class="et">No data yet</div>
+      <div class="es">Load a weekly payroll CSV to get started. Use the "Load Week" button above.</div>
+      <button class="btn pri" style="margin-top:8px" onclick="openImport()">↑ Load Week</button>
+    </div>
+
+    <div id="dash-content">
+
+      <!-- YTD SECTION -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase" id="ytd-heading">Year to Date</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3)">Year:</span>
+          <select id="ytd-year-sel" onchange="renderDashboard()" style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 8px;outline:none"></select>
+        </div>
+          <button class="btn sm" onclick="exportYTDExcel()" style="font-size:10px;padding:4px 10px;margin-left:4px">↓ Export YTD</button>
+      </div>
+      <div class="hero-grid" id="ytd-metrics"></div>
+      <div class="ratio-row" id="ytd-ratio-row"></div>
+      <div id="ytd-exp-card" style="margin-top:10px;display:none"></div>
+
+      <!-- DIVIDER -->
+      <div style="display:flex;align-items:center;gap:12px;margin:1.5rem 0 1rem">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase">Weekly Drill-Down</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+
+      <!-- WEEK SELECTOR -->
+      <div class="week-bar">
+        <span class="week-label">Week ending</span>
+        <select id="week-selector" onchange="selectWeek(this.value)"></select>
+        <span class="week-label">Revenue:</span>
+        <input type="text" id="week-rev-input" placeholder="Enter revenue..." style="width:150px" onchange="updateRevenue(this.value)">
+        <div class="spacer"></div>
+        <span id="week-status" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink3)"></span>
+        <button class="btn sm" onclick="openEditModal(currentWeekId)" style="font-size:10px;padding:4px 10px">✎ Edit week</button>
+        <button class="btn sm" onclick="openAddEmployee()" style="font-size:10px;padding:4px 10px;color:var(--grn);border-color:rgba(26,107,58,.35)">+ Add Employee</button>
+        <button class="btn sm" onclick="exportWeekExcel()" style="font-size:10px;padding:4px 10px">↓ Export week</button>
+      </div>
+
+      <div class="hero-grid" id="hero-metrics"></div>
+      <div class="ratio-row" id="ratio-row"></div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">Payroll by group — selected week</div>
+          <div class="ch-wrap"><canvas id="ch-group-bar" role="img" aria-label="Payroll by group bar chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">% of revenue trend — all weeks</div>
+          <div class="ch-wrap"><canvas id="ch-trend" role="img" aria-label="Payroll percentage trend"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span id="week-emp-title">Selected week's team</span>
+          <div style="display:flex;gap:6px">
+            <span class="cat-badge cb-ops">Ops</span>
+            <span class="cat-badge cb-adm">Admin</span>
+            <span class="cat-badge cb-trn">Trainee</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto"><table class="emp-table" id="dash-emp-table"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ EMPLOYEES PAGE ══ -->
+  <div class="page" id="page-employees">
+    <div class="card">
+      <div class="card-title">
+        <span>All known employees</span>
+        <span style="font-size:11px;color:var(--ink3)" id="emp-count-label"></span>
+      </div>
+      <p style="font-size:12px;color:var(--ink3);margin-bottom:1rem">Assign each employee to a category. Changes apply to all weeks retroactively. Categories: <strong>Operations</strong> (field/production), <strong>Admin</strong> (office/management), <strong>Trainee</strong> (in training).</p>
+      <div style="overflow-x:auto"><table class="emp-table" id="roster-table"></table></div>
+    </div>
+  </div>
+
+  <!-- ══ PRE-HIRE PAGE ══ -->
+  <div class="page" id="page-prehire">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Pre-hire Trainees <span id="prehire-count-label" style="font-weight:400;color:var(--ink3);letter-spacing:0;text-transform:none;font-size:11px;margin-left:6px"></span></span>
+        <button class="btn" onclick="openAddPrehire()" style="font-size:10px;padding:4px 12px;color:var(--grn);border-color:rgba(26,107,58,.35)">+ Add Trainee</button>
+      </div>
+      <p style="font-size:12px;color:var(--ink3);margin-bottom:1.25rem">Trainees who have been hired but have not yet appeared in a payroll run. They will automatically move to the Employees roster once their name appears in an imported CSV.</p>
+      <div id="prehire-empty" style="display:none;text-align:center;padding:2rem;color:var(--ink3);font-size:12px">No pre-hire trainees added yet.</div>
+      <div style="overflow-x:auto"><table class="emp-table" id="prehire-table"></table></div>
+    </div>
+  </div>
+
+  <!-- ══ HISTORY PAGE ══ -->
+  <div class="page" id="page-history">
+    <div class="g2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-title">Revenue vs Total Payroll</div>
+        <div class="ch-wrap"><canvas id="ch-hist-bar" role="img" aria-label="Historical revenue vs payroll"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Payroll % of Revenue by Group</div>
+        <div class="ch-wrap"><canvas id="ch-hist-line" role="img" aria-label="Historical payroll percentage by group"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">All weeks</div>
+      <div style="overflow-x:auto"><table class="hist-table" id="hist-table"></table></div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS PAGE ══ -->
+  <div class="page" id="page-settings">
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">Payroll targets (% of revenue)</div>
+        <div class="srow">
+          <div><div class="slbl">Total payroll target</div><div class="ssub">Green when at or below this</div></div>
+          <input type="number" class="sinput" id="st-total" min="1" max="100" step="1">
+        </div>
+        <div class="srow">
+          <div><div class="slbl">Total payroll warning</div><div class="ssub">Yellow above target, red above this</div></div>
+          <input type="number" class="sinput" id="st-warn" min="1" max="100" step="1">
+        </div>
+        <div class="srow">
+          <div><div class="slbl">Operations target</div><div class="ssub">Target % for ops payroll</div></div>
+          <input type="number" class="sinput" id="st-ops" min="1" max="100" step="1">
+        </div>
+        <div class="srow">
+          <div><div class="slbl">Admin target</div><div class="ssub">Target % for admin payroll</div></div>
+          <input type="number" class="sinput" id="st-adm" min="1" max="100" step="1">
+        </div>
+        <div class="srow">
+          <div><div class="slbl">Trainee target</div><div class="ssub">Target % for trainee payroll</div></div>
+          <input type="number" class="sinput" id="st-trn" min="1" max="100" step="1">
+        </div>
+        <div style="margin-top:1.25rem;display:flex;justify-content:flex-end">
+          <button class="btn pri" onclick="saveTargets()">Save targets</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Data management</div>
+        <div class="srow">
+          <div><div class="slbl">Weeks loaded</div><div class="ssub" id="set-week-count"></div></div>
+        </div>
+        <div class="srow">
+          <div><div class="slbl">Employees tracked</div><div class="ssub" id="set-emp-count"></div></div>
+        </div>
+        <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:8px">
+          <button class="btn" onclick="backfillExpenses()" style="color:var(--grn);border-color:rgba(26,107,58,.3)">⟳ Apply default expenses to existing weeks</button>
+          <button class="btn" onclick="exportWeekExcel()">↓ Export current week (Excel)</button>
+          <button class="btn" onclick="exportAllExcel()">↓ Export all weeks (Excel)</button>
+          <button class="btn" onclick="exportRosterExcel()">↓ Export employee roster (Excel)</button>
+          <button class="btn" onclick="exportData()">↓ Export raw data (JSON)</button>
+          <button class="btn" style="background:var(--grn);color:#fff;border-color:var(--grn)" onclick="exportWeeklyCashFlow()">↓ Export for Cash Flow Portal</button>
+          <button class="btn" style="color:var(--red);border-color:rgba(176,42,42,.3)" onclick="clearAllData()">Clear all data</button>
+        </div>
+      </div>
+    </div>
+
+        <!-- Employee benchmarks -->
+    <div class="card" style="margin-top:14px" id="emp-benchmarks-card">
+      <div class="card-title">Employee benchmarks <span style="font-weight:400;font-size:10px;color:var(--ink3);text-transform:none;letter-spacing:0">Set expected weekly gross and notes per employee</span></div>
+      <div id="emp-benchmarks-list" style="margin-bottom:1rem"></div>
+      <div style="font-size:11px;color:var(--ink3)">Benchmarks are shown in the employee table as a reference. They do not affect payroll calculations.</div>
+    </div>
+
+    <!-- Default weekly expenses + benchmarks -->
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">Default weekly expenses &amp; benchmarks <span style="font-weight:400;font-size:10px;color:var(--ink3);text-transform:none;letter-spacing:0">Pre-filled on each new week · amber field = industry benchmark % of revenue (editable)</span></div>
+      <!-- Revenue reference for live % calculation -->
+      <div class="srow" style="background:var(--surface2);border-radius:5px;padding:8px 10px;margin-bottom:8px;border:none">
+        <div><div class="slbl" style="color:var(--grn)">Weekly Revenue Reference</div><div class="ssub">Used to calculate actual % of revenue below</div></div>
+        <input type="number" class="sinput" id="sd-ref-rev" min="0" step="1" placeholder="e.g. 38500" style="width:110px" oninput="updateExpPcts()" value="">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 100px 68px 68px;gap:0;margin-bottom:2px;padding:0 0 4px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase">Category</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;text-align:right">Default $/wk</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;text-align:right">Actual%</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--amb);letter-spacing:.08em;text-transform:uppercase;text-align:right">Target%</span>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Supplies</div><div class="ssub">Cleaning products & materials</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-supplies" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-supplies" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-supplies" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Workman's Comp</div><div class="ssub">Weekly WC insurance premium</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-workmansComp" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-workmansComp" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-workmansComp" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">General Liability Ins.</div><div class="ssub">GL & bonding insurance</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-liability" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-liability" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-liability" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Rent</div><div class="ssub">Office / storage space</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-rent" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-rent" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-rent" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Utilities</div><div class="ssub">Electric, gas, water, internet</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-utilities" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-utilities" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-utilities" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Vehicle / Fuel / Mileage</div><div class="ssub">Fleet costs & gas reimbursement</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-vehicle" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-vehicle" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-vehicle" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Marketing & Advertising</div><div class="ssub">Google Ads, Yelp, Angi, promos</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-marketing" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-marketing" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-marketing" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Software & Subscriptions</div><div class="ssub">MaidCentral, Gusto, tools</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-software" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-software" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-software" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Recruiting & Hiring</div><div class="ssub">Job boards, background checks</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-recruiting" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-recruiting" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-recruiting" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Professional Services</div><div class="ssub">Accountant, legal, consulting</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-professional" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-professional" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-professional" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Office & Administrative</div><div class="ssub">Office supplies, postage, printing</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-officeEssentials" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-officeEssentials" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-officeEssentials" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div class="srow">
+        <div><div class="slbl">Misc</div><div class="ssub">Catch-all operating costs</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" class="sinput" id="sd-misc" min="0" step="0.01" placeholder="0.00" oninput="updateExpPcts()" style="width:100px">
+          <span id="sp-misc" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;min-width:58px;text-align:right;padding:6px 4px;color:var(--ink3)">—</span>
+          <input type="number" class="sinput" id="sb-misc" min="0" max="100" step="0.1" oninput="updateExpPcts()" title="Target benchmark % of revenue" style="width:58px;background:var(--amb-bg);border-color:rgba(138,87,0,.3);color:var(--amb)">
+        </div>
+      </div>
+      <div style="margin-top:1.25rem;display:flex;justify-content:flex-end">
+        <button class="btn pri" onclick="saveDefaultExpenses()">Save defaults &amp; benchmarks</button>
+      </div>
+    </div>  </div>
+
+</div>
+
+<!-- ══ ADD EMPLOYEE MODAL ══ -->
+<div id="modal-add-emp" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('add-emp')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div><h2>Add Employee</h2><p>Manually add an employee to the selected week's payroll.</p></div>
+      <button class="modal-close" onclick="closeModal('add-emp')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field">
+          <label>Full Name *</label>
+          <input type="text" id="ae-name" placeholder="e.g. Jane Doe" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="ae-cat" class="sinput" style="padding:9px 11px">
+            <option value="unk">— Unassigned</option>
+            <option value="ops">Operations</option>
+            <option value="adm" selected>Admin</option>
+            <option value="trn">Trainee</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Gross Pay ($) *</label>
+          <input type="number" id="ae-gross" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>Net Pay ($)</label>
+          <input type="number" id="ae-net" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Taxes ($)</label>
+          <input type="number" id="ae-taxes" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>Benefits ($)</label>
+          <input type="number" id="ae-benefits" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Reimbursements ($)</label>
+          <input type="number" id="ae-reimb" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>Tips ($)</label>
+          <input type="number" id="ae-tips" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+      <div id="ae-error" style="display:none;background:var(--red-bg,#fdf0ee);border:1px solid rgba(192,57,43,.3);border-radius:4px;padding:8px 12px;font-size:12px;color:var(--red);margin-top:4px"></div>
+    </div>
+    <div class="modal-footer" style="padding:1rem 1.75rem 1.5rem;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border)">
+      <button class="btn" onclick="closeModal('add-emp')">Cancel</button>
+      <button class="btn pri" onclick="confirmAddEmployee()">Add to Week</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ IMPORT MODAL ══ -->
+<div id="modal-import" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('import')">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Load Weekly Payroll</h2>
+        <div class="msub">Upload the CSV or XLSX exported from your payroll system (Gusto format). The week ending date and revenue are entered separately.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('import')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row" style="margin-bottom:1rem">
+        <div class="field">
+          <label>Week Ending Date</label>
+          <input type="date" id="imp-date">
+        </div>
+        <div class="field">
+          <label>Total Revenue ($)</label>
+          <input type="number" id="imp-rev" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;margin-top:4px">Business Expenses (optional)</div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Supplies ($)</label><input type="number" id="imp-supplies" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Workman's Comp ($)</label><input type="number" id="imp-workmansComp" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>General Liability Ins. ($)</label><input type="number" id="imp-liability" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Rent ($)</label><input type="number" id="imp-rent" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Utilities ($)</label><input type="number" id="imp-utilities" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Vehicle / Fuel / Mileage ($)</label><input type="number" id="imp-vehicle" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Marketing & Advertising ($)</label><input type="number" id="imp-marketing" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Software & Subscriptions ($)</label><input type="number" id="imp-software" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Recruiting & Hiring ($)</label><input type="number" id="imp-recruiting" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Professional Services ($)</label><input type="number" id="imp-professional" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Office & Administrative ($)</label><input type="number" id="imp-officeEssentials" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Misc ($)</label><input type="number" id="imp-misc" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+            <div class="imp-tabs">
+        <button class="imp-tab act" id="itab-file" onclick="setImpMode('file')">&#128196; Upload File</button>
+        <button class="imp-tab" id="itab-paste" onclick="setImpMode('paste')">&#128203; Paste Data</button>
+      </div>
+      <!-- File mode -->
+      <div id="imp-file-mode">
+        <div class="drop-zone" id="imp-dz"
+          onclick="document.getElementById('imp-file').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDrop(event)">
+          <div class="dz-icon">&#128196;</div>
+          <div class="dz-title">Drop payroll CSV or XLSX here</div>
+          <div class="dz-sub">Or click to browse &middot; Gusto payroll export</div>
+        </div>
+        <input type="file" id="imp-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFileInput(this)">
+        <div id="imp-preview" style="margin-top:1rem"></div>
+      </div>
+      <!-- Paste mode -->
+      <div id="imp-paste-mode" style="display:none">
+        <div style="font-size:12px;color:var(--ink3);margin-bottom:8px;line-height:1.6">
+          Copy the payroll table from Gusto (Company Financials report) and paste below.<br>
+          Includes the tab-separated format with Team member, Gross pay, Reimbursements, Company taxes, Company benefits, and Subtotal columns.
+        </div>
+        <textarea class="paste-area" id="imp-paste-text"
+          placeholder="Team member&#9;Gross pay&#9;Reimbursements&#9;Company taxes&#9;Company benefits&#9;Subtotal&#10;Bautista, Ashly&#9;$580.32&#9;$18.00&#9;$44.40&#9;$0.00&#9;$642.72&#10;..." 
+          oninput="previewPayrollPaste()"></textarea>
+        <div id="imp-paste-preview" class="paste-preview"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('import')">Cancel</button>
+      <button class="btn pri" id="imp-ok" style="display:none" onclick="confirmImport()">Import Week</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS MODAL ══ -->
+<div id="modal-settings" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('settings')">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h2>Payroll Targets</h2><div class="msub">Set target percentages of revenue for each payroll group.</div></div>
+      <button class="modal-close" onclick="closeModal('settings')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field"><label>Total target %</label><input type="number" id="ms-total" min="1" max="100" step="1"></div>
+        <div class="field"><label>Warning threshold %</label><input type="number" id="ms-warn" min="1" max="100" step="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Operations target %</label><input type="number" id="ms-ops" min="1" max="100" step="1"></div>
+        <div class="field"><label>Admin target %</label><input type="number" id="ms-adm" min="1" max="100" step="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Trainee target %</label><input type="number" id="ms-trn" min="1" max="100" step="1"></div>
+        <div class="field"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button cla
+ss="btn" onclick="closeModal('settings')">Cancel</button>
+      <button class="btn pri" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<script>// ── CASH FLOW EXPORT ─────────────────────────────────────────
+// Exports payroll data only (no expenses — those come from bank).
+// One row per week. User picks a month or exports all.
+function exportWeeklyCashFlow(){
+  const allWeeks = Object.keys(DB.weeks).sort();
+  if(!allWeeks.length){alert('No payroll data to export.');return;}
+
+  // Build month list from available weeks
+  const months = [...new Set(allWeeks.map(d=>d.slice(0,7)))].sort();
+  const monthLabels = ['January','February','March','April','May','June',
+                       'July','August','September','October','November','December'];
+  const monthMenu = months.map(ym=>{
+    const[y,m]=ym.split('-');
+    return `${monthLabels[+m-1]} ${y} (${ym})`;
+  });
+  monthMenu.unshift('All months');
+
+  // Prompt user to pick a month
+  const choice = prompt(
+    'Which period do you want to export?\n\n' +
+    monthMenu.map((l,i)=>`${i}: ${l}`).join('\n') +
+    '\n\nEnter the number:',
+    '0'
+  );
+  if(choice===null)return; // cancelled
+
+  const idx = parseInt(choice);
+  if(isNaN(idx)||idx<0||idx>months.length){alert('Invalid selection.');return;}
+
+  // Filter weeks
+  let weeks;
+  let label;
+  if(idx===0){
+    weeks=allWeeks;
+    label='All';
+  }else{
+    const ym=months[idx-1];
+    weeks=allWeeks.filter(d=>d.startsWith(ym));
+    const[y,m]=ym.split('-');
+    label=monthLabels[+m-1]+'_'+y;
+  }
+
+  if(!weeks.length){alert('No weeks found for that period.');return;}
+
+  // Build CSV — payroll columns only, no expenses
+  const headers=['week_ending','revenue','pay_operations','pay_admin','pay_trainee','pay_other','pay_total'];
+
+  const rows=weeks.map(id=>{
+    const s=getWeekStats(id);
+    if(!s)return null;
+    return[
+      id,
+      s.rev.toFixed(2),
+      s.opsPay.toFixed(2),
+      s.admPay.toFixed(2),
+      s.trnPay.toFixed(2),
+      s.unkPay.toFixed(2),
+      s.totalPay.toFixed(2),
+    ];
+  }).filter(Boolean);
+
+  const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Eldredge_Cashflow_'+label+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();a.remove();
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  ALL FUNCTIONS DEFINED FIRST — INIT AT BOTTOM
+// ═══════════════════════════════════════════════════════
+
+const STORE = 'eldredge_v3';
+function dbLoad(){ try{ return JSON.parse(localStorage.getItem(STORE))||null; }catch(e){ return null; } }
+function dbSave(){ try{ localStorage.setItem(STORE,JSON.stringify(DB)); }catch(e){ alert('Storage full.'); } }
+
+// ── HELPERS ──────────────────────────────────────────────
+const el = id => document.getElementById(id);
+const fmt = n => '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK = n => { const a=Math.abs(n); return (n<0?'-':'')+'$'+(a>=1000?(a/1000).toFixed(1)+'k':a.toFixed(0)); };
+const pct = (a,b) => b>0?(a/b*100):0;
+const pf = n => n.toFixed(1)+'%';
+
+function pctColor(p, target, warn){
+  if(p===0) return 'var(--ink3)';
+  if(p<=target) return 'var(--grn)';
+  if(p<=warn)   return 'var(--amb)';
+  return 'var(--red)';
+}
+function pctBadgeClass(p, target, warn){
+  if(p<=target) return 'pbg';
+  if(p<=warn)   return 'pbw';
+  return 'pbb';
+}
+
+function catLabel(cat){
+  if(cat==='ops')   return '<span class="cat-badge cb-ops">Ops</span>';
+  if(cat==='adm')   return '<span class="cat-badge cb-adm">Admin</span>';
+  if(cat==='trn')   return '<span class="cat-badge cb-trn">Trainee</span>';
+  return '<span class="cat-badge cb-unk">—</span>';
+}
+
+function getCatColor(cat){
+  if(cat==='ops') return '#1a6b3a';
+  if(cat==='adm') return '#1d4e8a';
+  if(cat==='trn') return '#8a5700';
+  return '#9a9690';
+}
+
+function employeeKey(name){ return name.trim().toLowerCase().replace(/[^a-z,\s]/g,''); }
+
+function getEmployeeCat(name, weekId){
+  const k = employeeKey(name);
+  // Week-specific override takes priority over global default
+  if(weekId && DB.employees[k]?.weekCats?.[weekId]){
+    return DB.employees[k].weekCats[weekId];
+  }
+  return DB.employees[k]?.cat || 'unk';
+}
+
+function setEmployeeCat(name, cat, weekId){
+  const k = employeeKey(name);
+  if(!DB.employees[k]) DB.employees[k] = {name, cat, weekCats:{}};
+  if(!DB.employees[k].weekCats) DB.employees[k].weekCats = {};
+  if(weekId){
+    // Store as week-specific override
+    DB.employees[k].weekCats[weekId] = cat;
+  } else {
+    // Update global default (from Employees page)
+    DB.employees[k].cat = cat;
+  }
+  dbSave();
+}
+
+// ── PARSE CSV ────────────────────────────────────────────
+function parsePayrollCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  if(lines.length < 2) return null;
+  const hdr = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const nameIdx = hdr.findIndex(h=>h.includes('team member')||h==='name'||h.includes('employee'));
+  const grossIdx = hdr.findIndex(h=>h.includes('gross pay')||h==='gross');
+  const taxIdx = hdr.findIndex(h=>h==='taxes'||h.includes('tax'));
+  const benIdx = hdr.findIndex(h=>h.includes('benefit'));
+  const netIdx = hdr.findIndex(h=>h.includes('net pay')||h==='net');
+  const dedIdx = hdr.findIndex(h=>h.includes('deduction'));
+  const tipsIdx = hdr.findIndex(h=>h.includes('tip'));
+  const rmbIdx = hdr.findIndex(h=>h.includes('reimburs'));
+
+  if(nameIdx===-1||grossIdx===-1) return null;
+
+  const parseMoney = s => {
+    if(typeof s === 'number') return s;
+    return parseFloat((s||'').toString().replace(/[$,\s"]/g,''))||0;
+  };
+
+  const employees = [];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    // Handle quoted commas
+    const cols=[];let cur='',inQ=false;
+    for(const ch of lines[i]){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}
+    cols.push(cur.trim());
+    const name = (cols[nameIdx]||'').replace(/^"|"$/g,'').trim();
+    if(!name||name.toLowerCase().includes('grand total')||name.toLowerCase().includes('total')) continue;
+    const gross = parseMoney(cols[grossIdx]);
+    if(gross===0&&name==='') continue;
+    employees.push({
+      name,
+      gross: parseMoney(cols[grossIdx]),
+      deductions: dedIdx!==-1?parseMoney(cols[dedIdx]):0,
+      tips: tipsIdx!==-1?parseMoney(cols[tipsIdx]):0,
+      reimbursements: rmbIdx!==-1?parseMoney(cols[rmbIdx]):0,
+      taxes: taxIdx!==-1?parseMoney(cols[taxIdx]):0,
+      benefits: benIdx!==-1?parseMoney(cols[benIdx]):0,
+      net: netIdx!==-1?parseMoney(cols[netIdx]):0,
+    });
+  }
+  return employees.length>0 ? employees : null;
+}
+
+// ── CHART MANAGEMENT ─────────────────────────────────────
+const charts={};
+function mkChart(id,type,data,opts){
+  if(charts[id]){charts[id].destroy();delete charts[id];}
+  const c=el(id);if(!c)return;
+  charts[id]=new Chart(c,{type,data,options:opts});
+}
+function drawGauge(canvasId, val, color){
+  if(charts[canvasId]){charts[canvasId].destroy();delete charts[canvasId];}
+  const c=el(canvasId);if(!c)return;
+  const rem=Math.max(0.001,100-Math.min(val,100));
+  charts[canvasId]=new Chart(c,{
+    type:'doughnut',
+    data:{datasets:[{data:[val>0?Math.min(val,100):0.001,rem],backgroundColor:[color,'#e2ddd3'],borderWidth:0,hoverOffset:0}]},
+    options:{responsive:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:400}}
+  });
+}
+
+const CBASE={
+  responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1916',titleColor:'#f5f3ee',bodyColor:'#9a9690',borderColor:'rgba(0,0,0,.2)',borderWidth:1}},
+  scales:{
+    x:{ticks:{color:'#9a9690',font:{family:"'IBM Plex Mono'",size:9}},grid:{color:'rgba(0,0,0,.06)'}},
+    y:{ticks:{color:'#9a9690',font:{family:"'IBM Plex Mono'",size:9}},grid:{color:'rgba(0,0,0,.06)'}}
+  }
+};
+
+// ── WEEK AGGREGATION ─────────────────────────────────────
+function getWeekStats(weekId){
+  const w = DB.weeks[weekId];
+  if(!w) return null;
+  const rev = w.revenue||0;
+  let opsPay=0,admPay=0,trnPay=0,unkPay=0;
+  (w.employees||[]).forEach(e=>{
+    const cat = getEmployeeCat(e.name, weekId);
+    const pay = e.gross; // use gross pay as "payroll cost"
+    if(cat==='ops') opsPay+=pay;
+    else if(cat==='adm') admPay+=pay;
+    else if(cat==='trn') trnPay+=pay;
+    else unkPay+=pay;
+  });
+  const totalPay=opsPay+admPay+trnPay+unkPay;
+  const exp=w.expenses||{};
+  const totalExp=(exp.supplies||0)+(exp.workmansComp||0)+(exp.liability||0)+(exp.rent||0)+(exp.utilities||0)+(exp.vehicle||0)+(exp.marketing||0)+(exp.software||0)+(exp.recruiting||0)+(exp.professional||0)+(exp.officeEssentials||0)+(exp.misc||0);
+  return {rev,opsPay,admPay,trnPay,unkPay,totalPay,
+    expSupplies:exp.supplies||0,expWorkmansComp:exp.workmansComp||0,expLiability:exp.liability||0,expRent:exp.rent||0,expUtilities:exp.utilities||0,expVehicle:exp.vehicle||0,expMarketing:exp.marketing||0,expSoftware:exp.software||0,expRecruiting:exp.recruiting||0,expProfessional:exp.professional||0,expOfficeEssentials:exp.officeEssentials||0,expMisc:exp.misc||0,
+    totalExp,totalCost:totalPay+totalExp};
+}
+
+// ── NAVIGATION ────────────────────────────────────────────
+let currentPage='dashboard';
+let currentWeekId=null;
+
+function showPage(page,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.hn').forEach(b=>b.classList.remove('active'));
+  el('page-'+page).classList.add('active');
+  if(btn) btn.classList.add('active');
+  currentPage=page;
+  if(page==='dashboard') renderDashboard();
+  if(page==='employees') renderEmployees();
+  if(page==='history')   renderHistory();
+  if(page==='settings'){renderSettingsPage();}
+  if(page==='prehire') renderPreHirePage();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+function getYTDStats(year){
+  const prefix = year+'-';
+  const ytdWeeks = Object.keys(DB.weeks).filter(id=>id.startsWith(prefix));
+  let rev=0,opsPay=0,admPay=0,trnPay=0,unkPay=0,totalPay=0,wkCount=0;
+  let expSupplies=0,expWorkmansComp=0,expLiability=0,expRent=0,expUtilities=0,expVehicle=0,expMarketing=0,expSoftware=0,expRecruiting=0,expProfessional=0,expOfficeEssentials=0,expMisc=0;
+  ytdWeeks.forEach(id=>{
+    const s=getWeekStats(id);
+    rev+=s.rev; opsPay+=s.opsPay; admPay+=s.admPay;
+    trnPay+=s.trnPay; unkPay+=s.unkPay; totalPay+=s.totalPay; wkCount++;
+    expSupplies+=s.expSupplies||0;
+    expWorkmansComp+=s.expWorkmansComp||0;
+    expLiability+=s.expLiability||0;
+    expRent+=s.expRent||0;
+    expUtilities+=s.expUtilities||0;
+    expVehicle+=s.expVehicle||0;
+    expMarketing+=s.expMarketing||0;
+    expSoftware+=s.expSoftware||0;
+    expRecruiting+=s.expRecruiting||0;
+    expProfessional+=s.expProfessional||0;
+    expOfficeEssentials+=s.expOfficeEssentials||0;
+    expMisc+=s.expMisc||0;
+  });
+  const totalExp=expSupplies+expWorkmansComp+expLiability+expRent+expUtilities+expVehicle+expMarketing+expSoftware+expRecruiting+expProfessional+expOfficeEssentials+expMisc;
+  const totalCost=totalPay+totalExp;
+  return {rev,opsPay,admPay,trnPay,unkPay,totalPay,wkCount,year,weekIds:ytdWeeks.sort(),
+    expSupplies,expWorkmansComp,expLiability,expRent,expUtilities,expVehicle,expMarketing,expSoftware,expRecruiting,expProfessional,expOfficeEssentials,expMisc,totalExp,totalCost};
+}
+
+function renderYTD(ytd){
+  const T=DB.settings;
+  const {rev,opsPay,admPay,trnPay,unkPay,totalPay,wkCount,year,
+    expSupplies=0,expWorkmansComp=0,expLiability=0,expRent=0,expUtilities=0,expVehicle=0,
+    expMarketing=0,expSoftware=0,expRecruiting=0,expProfessional=0,
+    expOfficeEssentials=0,expMisc=0,totalExp=0,totalCost=0} = ytd;
+  el('ytd-heading').textContent = year+' Year to Date — '+wkCount+' week'+(wkCount!==1?'s':'')+' loaded';
+
+  // Build expense breakdown details for dropdown
+  const expBreakdown=[
+    {l:'Supplies',          v:expSupplies},
+    {l:"Workman's Comp",    v:expWorkmansComp},
+    {l:'Rent',              v:expRent},
+    {l:'Utilities',         v:expUtilities},
+    {l:'Office Essentials', v:expOfficeEssentials},
+    {l:'Misc',              v:expMisc},
+  ].filter(e=>e.v>0);
+  const expDetailHtml = expBreakdown.length ? expBreakdown.map(e=>
+    `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:10px">
+      <span style="color:var(--ink2)">${e.l}</span>
+      <span class="mono" style="color:var(--ink)">${fmt(e.v)}</span>
+    </div>`).join('') :
+    '<div style="font-size:10px;color:var(--ink3);padding:4px 0">No expenses recorded yet</div>';
+
+  // YTD hero metrics
+  el('ytd-metrics').innerHTML=`
+    <div class="hm rev" style="border-top:3px solid var(--grn)">
+      <div class="hm-lbl">YTD Revenue</div>
+      <div class="hm-val">${rev>0?fmtK(rev):'—'}</div>
+      <div class="hm-sub">${wkCount} weeks · avg ${wkCount>0&&rev>0?fmtK(rev/wkCount)+'/wk':'—'}</div>
+    </div>
+    <div class="hm ops" style="border-top:3px solid var(--ops-color)">
+      <div class="hm-lbl">YTD Operations</div>
+      <div class="hm-val">${fmtK(opsPay)}</div>
+      <div class="hm-sub">${rev>0?pf(pct(opsPay,rev))+' of rev':'—'}</div>
+    </div>
+    <div class="hm adm" style="border-top:3px solid var(--adm-color)">
+      <div class="hm-lbl">YTD Admin</div>
+      <div class="hm-val">${fmtK(admPay)}</div>
+      <div class="hm-sub">${rev>0?pf(pct(admPay,rev))+' of rev':'—'}</div>
+    </div>
+    <div class="hm trn" style="border-top:3px solid var(--trn-color)">
+      <div class="hm-lbl">YTD Trainee</div>
+      <div class="hm-val">${fmtK(trnPay)}</div>
+      <div class="hm-sub">${rev>0?pf(pct(trnPay,rev))+' of rev':'—'}</div>
+    </div>
+    <div class="hm tot" style="border-top:3px solid var(--ink)">
+      <div class="hm-lbl">YTD Total Payroll</div>
+      <div class="hm-val">${fmtK(totalPay)}</div>
+      <div class="hm-sub">${rev>0?pf(pct(totalPay,rev))+' of rev':'—'}</div>
+    </div>
+`;
+  // Render the expense card separately (stable DOM, not inside innerHTML)
+  renderYTDExpCard(ytd);
+
+  // YTD ratio gauges
+  const ratios=[
+    {id:'ytd-gauge-total',lbl:'Total % of Revenue (YTD)',val:pct(totalPay,rev),target:T.total,color:pctColor(pct(totalPay,rev),T.total,T.warn)},
+    {id:'ytd-gauge-ops',  lbl:'Operations % of Revenue (YTD)',val:pct(opsPay,rev), target:T.ops,  color:'#1a6b3a'},
+    {id:'ytd-gauge-adm',  lbl:'Admin % of Revenue (YTD)',     val:pct(admPay,rev), target:T.adm,  color:'#1d4e8a'},
+    {id:'ytd-gauge-trn',  lbl:'Trainee % of Revenue (YTD)',   val:pct(trnPay,rev), target:T.trn,  color:'#8a5700'},
+  ];
+  el('ytd-ratio-row').innerHTML=ratios.map(r=>{
+    const st=r.val===0?{l:'no revenue',c:'var(--ink3)'}:r.val<=r.target?{l:'on target',c:'var(--grn)'}:r.val<=(r.target*1.15)?{l:'watch',c:'var(--amb)'}:{l:'over target',c:'var(--red)'};
+    const fillW=rev>0?Math.min((r.val/(T.warn||50))*100,100).toFixed(1):'0';
+    const tickPos=Math.min((r.target/(T.warn||50))*100,98).toFixed(1);
+    return `<div class="rb">
+      <div class="rb-gauge"><canvas id="${r.id}" width="64" height="64"></canvas>
+        <div class="rb-num" style="color:${r.color}">${rev>0?r.val.toFixed(0)+'%':'—'}</div>
+      </div>
+      <div class="rb-info">
+        <div class="rb-lbl">${r.lbl}</div>
+        <div class="rb-pct" style="color:${r.color}">${rev>0?r.val.toFixed(1)+'%':'—'}</div>
+        <div class="rb-status"><span class="rb-dot" style="background:${st.c}"></span><span style="color:${st.c}">${st.l}</span><span style="color:var(--ink3);margin-left:4px;font-size:10px">· tgt ${r.target}%</span></div>
+        <div class="tbar"><div class="tbar-fill" style="width:${fillW}%;background:${r.color}"></div><div class="tbar-tick" style="left:${tickPos}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>ratios.forEach(r=>drawGauge(r.id, rev>0?r.val:0, r.color)),80);
+}
+
+function renderDashboard(){
+  const weekIds = Object.keys(DB.weeks).sort().reverse();
+  const hasData = weekIds.length>0;
+  el('dash-empty').style.display = hasData?'none':'flex';
+  el('dash-content').style.display = hasData?'block':'none';
+  if(!hasData) return;
+
+  // Populate year selector
+  const allYears=[...new Set(weekIds.map(id=>id.slice(0,4)))].sort().reverse();
+  const yrSel=el('ytd-year-sel');
+  const prevYr=yrSel.value||allYears[0];
+  yrSel.innerHTML=allYears.map(y=>`<option value="${y}" ${y===prevYr?'selected':''}>${y}</option>`).join('');
+  const selectedYear=yrSel.value;
+
+  // Render YTD for selected year
+  const ytd=getYTDStats(selectedYear);
+  renderYTD(ytd);
+
+  // Week selector — only show weeks in selected year
+  const yearWeeks=weekIds.filter(id=>id.startsWith(selectedYear+'-'));
+  const sel = el('week-selector');
+  // Keep current week if it's in this year, else default to most recent
+  const prev = (currentWeekId && yearWeeks.includes(currentWeekId)) ? currentWeekId : yearWeeks[0];
+  sel.innerHTML = yearWeeks.length>0
+    ? yearWeeks.map(id=>`<option value="${id}" ${id===prev?'selected':''}>${id}</option>`).join('')
+    : `<option value="">No weeks in ${selectedYear}</option>`;
+  currentWeekId = yearWeeks.length>0 ? sel.value : null;
+
+  if(currentWeekId){
+    const w = DB.weeks[currentWeekId];
+    el('week-rev-input').value = w.revenue ? w.revenue.toFixed(2) : '';
+    el('week-status').textContent = w.revenue ? `${w.employees.length} employees · rev entered` : `${w.employees?.length||0} employees · no revenue yet`;
+    el('week-emp-title').textContent = 'Team — week ending '+currentWeekId;
+    renderWeekView(currentWeekId);
+  }
+}
+
+function selectWeek(id){
+  currentWeekId=id;
+  const w=DB.weeks[id];
+  el('week-rev-input').value = w.revenue?w.revenue.toFixed(2):'';
+  el('week-status').textContent = w.revenue?`${w.employees.length} employees · rev entered`:`${w.employees?.length||0} employees · no revenue yet`;
+  el('week-emp-title').textContent = 'Team — week ending '+id;
+  renderWeekView(id);
+}
+
+function updateRevenue(val){
+  const rev = parseFloat(val.replace(/[$,]/g,''))||0;
+  if(!currentWeekId) return;
+  DB.weeks[currentWeekId].revenue = rev;
+  dbSave();
+  el('week-status').textContent = `${DB.weeks[currentWeekId].employees.length} employees · rev saved`;
+  renderWeekView(currentWeekId);
+}
+
+function renderWeekView(weekId){
+  const stats = getWeekStats(weekId);
+  if(!stats) return;
+  const {rev,opsPay,admPay,trnPay,unkPay,totalPay,totalExp=0,totalCost=0,expSupplies=0,expWorkmansComp=0,expLiability=0,expRent=0,expUtilities=0,expVehicle=0,expMarketing=0,expSoftware=0,expRecruiting=0,expProfessional=0,expOfficeEssentials=0,expMisc=0} = stats;
+  const T = DB.settings;
+
+  // Hero metrics
+  el('hero-metrics').innerHTML=`
+    <div class="hm rev">
+      <div class="hm-lbl">Revenue</div>
+      <div class="hm-val">${rev>0?fmtK(rev):'—'}</div>
+      <div class="hm-sub">${weekId}</div>
+    </div>
+    <div class="hm ops">
+      <div class="hm-lbl">Operations</div>
+      <div class="hm-val">${fmtK(opsPay)}</div>
+      <div class="hm-sub">${rev>0?pf(pct(opsPay,rev))+' of rev':'enter revenue'}</div>
+    </div>
+    <div class="hm adm">
+      <div class="hm-lbl">Admin</div>
+      <div class="hm-val">${fmtK(admPay)}</div>
+      <div class="hm-sub">${rev>0?pf(pct(admPay,rev))+' of rev':'enter revenue'}</div>
+    </div>
+    <div class="hm trn">
+      <div class="hm-lbl">Trainee</div>
+      <div class="hm-val">${fmtK(trnPay)}</div>
+      <div class="hm-sub">${rev>0?pf(pct(trnPay,rev))+' of rev':'enter revenue'}</div>
+    </div>
+    <div class="hm tot">
+      <div class="hm-lbl">Total Payroll</div>
+      <div class="hm-val">${fmtK(totalPay)}</div>
+      <div class="hm-sub">${rev>0?pf(pct(totalPay,rev))+' of rev':'enter revenue'}</div>
+    </div>
+    <div class="hm exp">
+      <div class="hm-lbl">Other Expenses</div>
+      <div class="hm-val" style="color:var(--red)">${totalExp>0?fmtK(totalExp):'\u2014'}</div>
+      <div class="hm-sub">${rev>0&&totalExp>0?pf(pct(totalExp,rev))+' of rev':totalExp>0?'enter revenue':'not entered'}</div>
+    </div>
+    <div class="hm net">
+      <div class="hm-lbl">Net Margin</div>
+      <div class="hm-val" style="color:${rev>0&&rev-totalCost>=0?'var(--grn)':'var(--red)'}">${rev>0?fmtK(rev-totalCost):'\u2014'}</div>
+      <div class="hm-sub">${rev>0?pf(pct(rev-totalCost,rev))+' margin':'enter revenue'}</div>
+    </div>`;
+
+  // Ratio gauges
+  const ratios=[
+    {id:'gauge-total',lbl:'Total % of Revenue',val:pct(totalPay,rev),target:T.total,color:pctColor(pct(totalPay,rev),T.total,T.warn)},
+    {id:'gauge-ops',  lbl:'Operations % of Revenue',val:pct(opsPay,rev), target:T.ops,  color:'#1a6b3a'},
+    {id:'gauge-adm',  lbl:'Admin % of Revenue',     val:pct(admPay,rev), target:T.adm,  color:'#1d4e8a'},
+    {id:'gauge-trn',  lbl:'Trainee % of Revenue',   val:pct(trnPay,rev), target:T.trn,  color:'#8a5700'},
+  ];
+  el('ratio-row').innerHTML=ratios.map(r=>{
+    const st = r.val===0?{l:'no revenue',c:'var(--ink3)'}:r.val<=r.target?{l:'on target',c:'var(--grn)'}:r.val<=(r.target*1.15)?{l:'watch',c:'var(--amb)'}:{l:'over target',c:'var(--red)'};
+    const fillW=rev>0?Math.min((r.val/(T.warn||50))*100,100).toFixed(1):'0';
+    const tickPos=Math.min((r.target/(T.warn||50))*100,98).toFixed(1);
+    return `<div class="rb">
+      <div class="rb-gauge"><canvas id="${r.id}" width="64" height="64"></canvas>
+        <div class="rb-num" style="color:${r.color}">${rev>0?r.val.toFixed(0)+'%':'—'}</div>
+      </div>
+      <div class="rb-info">
+        <div class="rb-lbl">${r.lbl}</div>
+        <div class="rb-pct" style="color:${r.color}">${rev>0?r.val.toFixed(1)+'%':'—'}</div>
+        <div class="rb-status"><span class="rb-dot" style="background:${st.c}"></span><span style="color:${st.c}">${st.l}</span><span style="color:var(--ink3);margin-left:4px;font-size:10px">· tgt ${r.target}%</span></div>
+        <div class="tbar"><div class="tbar-fill" style="width:${fillW}%;background:${r.color}"></div><div class="tbar-tick" style="left:${tickPos}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>ratios.forEach(r=>drawGauge(r.id, rev>0?r.val:0, r.color)),60);
+
+  // Group bar chart
+  mkChart('ch-group-bar','bar',{
+    labels:['Operations','Admin','Trainee','Unassigned'],
+    datasets:[{
+      data:[Math.round(opsPay),Math.round(admPay),Math.round(trnPay),Math.round(unkPay)],
+      backgroundColor:['rgba(26,107,58,.4)','rgba(29,78,138,.4)','rgba(138,87,0,.4)','rgba(154,150,144,.4)'],
+      borderColor:['#1a6b3a','#1d4e8a','#8a5700','#9a9690'],
+      borderWidth:1,borderRadius:4
+    }]
+  },{...CBASE,scales:{...CBASE.scales,y:{...CBASE.scales.y,ticks:{...CBASE.scales.y.ticks,callback:v=>'$'+v.toLocaleString()}}}});
+
+  // Trend chart
+  const weekIds=Object.keys(DB.weeks).sort().slice(-12);
+  const trendData=weekIds.map(id=>{
+    const s=getWeekStats(id);
+    return {id,tot:pct(s.totalPay,s.rev),ops:pct(s.opsPay,s.rev),adm:pct(s.admPay,s.rev),trn:pct(s.trnPay,s.rev)};
+  });
+  mkChart('ch-trend','line',{
+    labels:weekIds.map(id=>id.slice(5)),
+    datasets:[
+      {label:'Total',data:trendData.map(d=>+d.tot.toFixed(1)),borderColor:'#1a1916',borderWidth:2,tension:.3,pointRadius:4,fill:false,borderDash:[],pointBackgroundColor:'#1a1916'},
+      {label:'Ops',  data:trendData.map(d=>+d.ops.toFixed(1)),borderColor:'#1a6b3a',borderWidth:1.5,tension:.3,pointRadius:3,fill:false,pointBackgroundColor:'#1a6b3a'},
+      {label:'Admin',data:trendData.map(d=>+d.adm.toFixed(1)),borderColor:'#1d4e8a',borderWidth:1.5,tension:.3,pointRadius:3,fill:false,pointBackgroundColor:'#1d4e8a'},
+      {label:'Trainee',data:trendData.map(d=>+d.trn.toFixed(1)),borderColor:'#8a5700',borderWidth:1.5,tension:.3,pointRadius:3,fill:false,pointBackgroundColor:'#8a5700'},
+      {label:'Target',data:weekIds.map(()=>T.total),borderColor:'rgba(26,107,58,.4)',borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false},
+    ]
+  },{...CBASE,
+    plugins:{...CBASE.plugins,legend:{display:true,labels:{color:'#5a574f',font:{family:"'IBM Plex Mono'",size:9},boxWidth:8,padding:10}}},
+    scales:{...CBASE.scales,y:{...CBASE.scales.y,ticks:{...CBASE.scales.y.ticks,callback:v=>v+'%'},suggestedMin:0,suggestedMax:Math.max(80,T.warn+10)}}
+  });
+
+  // Employee table for this week
+  const emps = (DB.weeks[weekId].employees||[]).slice().sort((a,b)=>b.gross-a.gross);
+  const tbl = el('dash-emp-table');
+  // Detect if this week used Format B (company cost report) - has grossWages field
+  const isFormatB = emps.length>0 && emps[0].grossWages !== undefined;
+  tbl.innerHTML=`<thead><tr>
+    <th>Employee</th><th>Category</th>
+    <th class="r">Total Cost</th>
+    ${isFormatB?'<th class="r">Wages</th><th class="r">Co. Taxes</th>':'<th class="r">Tips</th><th class="r">Taxes</th>'}
+    <th class="r">Benefits</th><th class="r">Reimb.</th>
+    ${rev>0?'<th class="r">% of Rev</th>':''}<th></th>
+  </tr></thead><tbody>`+
+  emps.map(e=>{
+    const cat=getEmployeeCat(e.name, weekId);
+    const p=pct(e.gross,rev);
+    const catColor=getCatColor(cat);
+    return `<tr>
+      <td class="mono" style="font-size:11px">${e.name}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:4px">
+          <select class="cat-sel" onchange="setEmployeeCat('${e.name.replace(/'/g,"\\'")}',this.value,currentWeekId);renderWeekView(currentWeekId)" title="${getEmployeeCat(e.name)!==cat?'Week override active — global default: '+getEmployeeCat(e.name):'Global default'}">
+            <option value="unk" ${cat==='unk'?'selected':''}>— Unassigned</option>
+            <option value="ops" ${cat==='ops'?'selected':''}>Operations</option>
+            <option value="adm" ${cat==='adm'?'selected':''}>Admin</option>
+            <option value="trn" ${cat==='trn'?'selected':''}>Trainee</option>
+          </select>
+          ${getEmployeeCat(e.name)!==cat?'<span title="Week override — different from global default" style="font-size:9px;background:var(--amb-bg);color:var(--amb);border-radius:3px;padding:1px 5px;font-family:\'IBM Plex Mono\',monospace;font-weight:600">WK</span>':''}
+        </div>
+      </td>
+      <td class="r mono" style="color:var(--ink);font-weight:500">${fmt(e.gross)}</td>
+      ${isFormatB
+        ? `<td class="r mono" style="color:var(--ink3)">${e.grossWages>0?fmt(e.grossWages):'—'}</td><td class="r mono" style="color:var(--ink3)">${e.taxes>0?fmt(e.taxes):'—'}</td>`
+        : `<td class="r mono" style="color:var(--ink3)">${e.tips>0?fmt(e.tips):'—'}</td><td class="r mono" style="color:var(--ink3)">${fmt(e.taxes)}</td>`}
+      <td class="r mono" style="color:var(--ink3)">${e.benefits>0?fmt(e.benefits):'—'}</td>
+      <td class="r mono" style="color:var(--ink3)">${e.reimbursements>0?fmt(e.reimbursements):'—'}</td>
+      ${rev>0?`<td class="r"><span class="pct-badge ${pctBadgeClass(p,T.total/emps.length,T.warn/emps.length)}">${p.toFixed(2)}%</span></td>`:''}
+      <td><button onclick="removeManualEmployee('${e.name.replace(/'/g,"\\'")}','${currentWeekId}')" style="background:none;border:none;cursor:pointer;color:${e.manualEntry?'var(--red)':'var(--border2)'};font-size:13px;padding:2px 5px;opacity:${e.manualEntry?'1':'0.3'}" title="${e.manualEntry?'Remove (manually added)':'Cannot remove imported employees'}">×</button></td>
+    </tr>`;
+  }).join('')+'</tbody>';
+}
+
+// ── EMPLOYEES PAGE ────────────────────────────────────────
+function renderEmployees(){
+  // Collect all known employees across all weeks
+  const empMap={};
+  Object.values(DB.weeks).forEach(w=>{
+    (w.employees||[]).forEach(e=>{
+      const k=employeeKey(e.name);
+      if(!empMap[k]) empMap[k]={name:e.name,weeks:0,totalGross:0,cat:getEmployeeCat(e.name)};
+      empMap[k].weeks++;
+      empMap[k].totalGross+=e.gross;
+      empMap[k].cat=getEmployeeCat(e.name);
+    });
+  });
+  const emps=Object.values(empMap).sort((a,b)=>a.name.localeCompare(b.name));
+  el('emp-count-label').textContent=emps.length+' employees';
+  const tbl=el('roster-table');
+  if(emps.length===0){tbl.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--ink3);padding:24px;font-size:12px">No employees yet. Load a weekly CSV first.</td></tr>';return;}
+  tbl.innerHTML=`<thead><tr>
+    <th>Name</th><th>Category</th><th class="r">Weeks seen</th><th class="r">Total Gross</th><th class="r">Avg/Week</th>
+  </tr></thead><tbody>`+
+  emps.map(e=>`<tr>
+    <td class="mono" style="font-size:11px">${e.name}</td>
+    <td>
+      <select class="cat-sel" onchange="setEmployeeCat('${e.name.replace(/'/g,"\\'")}',this.value);renderEmployees();if(currentPage==='dashboard')renderWeekView(currentWeekId)">
+        <option value="unk" ${e.cat==='unk'?'selected':''}>— Unassigned</option>
+        <option value="ops" ${e.cat==='ops'?'selected':''}>Operations</option>
+        <option value="adm" ${e.cat==='adm'?'selected':''}>Admin</option>
+        <option value="trn" ${e.cat==='trn'?'selected':''}>Trainee</option>
+      </select>
+    </td>
+    <td class="r mono">${e.weeks}</td>
+    <td class="r mono">${fmt(e.totalGross)}</td>
+    <td class="r mono">${fmt(e.totalGross/e.weeks)}</td>
+  </tr>`).join('')+'</tbody>';
+}
+
+// ── HISTORY PAGE ──────────────────────────────────────────
+function renderHistory(){
+  const weekIds=Object.keys(DB.weeks).sort();
+  if(weekIds.length===0){
+    el('hist-table').innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--ink3);padding:24px;font-size:12px">No weeks loaded yet.</td></tr>';
+    return;
+  }
+  const statsArr=weekIds.map(id=>({id,...getWeekStats(id)}));
+
+  // Charts
+  mkChart('ch-hist-bar','bar',{
+    labels:weekIds.map(id=>id.slice(5)),
+    datasets:[
+      {label:'Revenue',data:statsArr.map(s=>Math.round(s.rev)),backgroundColor:'rgba(26,107,58,.2)',borderColor:'#1a6b3a',borderWidth:1},
+      {label:'Total Payroll',data:statsArr.map(s=>Math.round(s.totalPay)),backgroundColor:'rgba(26,25,22,.15)',borderColor:'#1a1916',borderWidth:1},
+    ]
+  },{...CBASE,
+    plugins:{...CBASE.plugins,legend:{display:true,labels:{color:'#5a574f',font:{family:"'IBM Plex Mono'",size:9},boxWidth:8,padding:10}}},
+    scales:{...CBASE.scales,x:{...CBASE.scales.x,ticks:{...CBASE.scales.x.ticks,autoSkip:false,maxRotation:45}},y:{...CBASE.scales.y,ticks:{...CBASE.scales.y.ticks,callback:v=>'$'+v.toLocaleString()}}}
+  });
+
+  mkChart('ch-hist-line','line',{
+    labels:weekIds.map(id=>id.slice(5)),
+    datasets:[
+      {label:'Total %',data:statsArr.map(s=>+pct(s.totalPay,s.rev).toFixed(1)),borderColor:'#1a1916',borderWidth:2,tension:.3,pointRadius:4,fill:false,pointBackgroundColor:'#1a1916'},
+      {label:'Ops %',  data:statsArr.map(s=>+pct(s.opsPay,s.rev).toFixed(1)),borderColor:'#1a6b3a',borderWidth:1.5,tension:.3,pointRadius:3,fill:false,pointBackgroundColor:'#1a6b3a'},
+      {label:'Admin %',data:statsArr.map(s=>+pct(s.admPay,s.rev).toFixed(1)),borderColor:'#1d4e8a',borderWidth:1.5,tension:.3,pointRadius:3,fill:false,pointBackgroundColor:'#1d4e8a'},
+      {label:'Trainee %',data:statsArr.map(s=>+pct(s.trnPay,s.rev).toFixed(1)),borderColor:'#8a5700',borderWidth:1.5,tension:.3,pointRadius:3,fill:false,pointBackgroundColor:'#8a5700'},
+      {label:'Target',data:weekIds.map(()=>DB.settings.total),borderColor:'rgba(26,107,58,.4)',borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false},
+    ]
+  },{...CBASE,
+    plugins:{...CBASE.plugins,legend:{display:true,labels:{color:'#5a574f',font:{family:"'IBM Plex Mono'",size:9},boxWidth:8,padding:10}}},
+    scales:{...CBASE.scales,x:{...CBASE.scales.x,ticks:{...CBASE.scales.x.ticks,autoSkip:false,maxRotation:45}},y:{...CBASE.scales.y,ticks:{...CBASE.scales.y.ticks,callback:v=>v+'%'},suggestedMin:0}}
+  });
+
+  // Table
+  const T=DB.settings;
+  el('hist-table').innerHTML=`<thead><tr>
+    <th>Week</th><th class="r">Revenue</th><th class="r">Ops Pay</th><th class="r">Ops %</th>
+    <th class="r">Admin Pay</th><th class="r">Admin %</th><th class="r">Trainee</th>
+    <th class="r">Total Pay</th><th class="r">Total %</th><th></th>
+  </tr></thead><tbody>`+
+  [...statsArr].reverse().map(s=>`<tr class="${s.id===currentWeekId?'active-week':''}" onclick="selectWeekAndGo('${s.id}')">
+    <td class="mono">${s.id}</td>
+    <td class="r mono">${s.rev>0?fmt(s.rev):'—'}</td>
+    <td class="r mono">${fmt(s.opsPay)}</td>
+    <td class="r">${s.rev>0?`<span class="pct-badge ${pctBadgeClass(pct(s.opsPay,s.rev),T.ops,T.ops*1.15)}">${pct(s.opsPay,s.rev).toFixed(1)}%</span>`:'—'}</td>
+    <td class="r mono">${fmt(s.admPay)}</td>
+    <td class="r">${s.rev>0?`<span class="pct-badge ${pctBadgeClass(pct(s.admPay,s.rev),T.adm,T.adm*1.15)}">${pct(s.admPay,s.rev).toFixed(1)}%</span>`:'—'}</td>
+    <td class="r mono">${fmt(s.trnPay)}</td>
+    <td class="r mono">${fmt(s.totalPay)}</td>
+    <td class="r">${s.rev>0?`<span class="pct-badge ${pctBadgeClass(pct(s.totalPay,s.rev),T.total,T.warn)}">${pct(s.totalPay,s.rev).toFixed(1)}%</span>`:'—'}</td>
+    <td style="width:32px;text-align:center"><button class="btn sm" style="padding:3px 8px;font-size:10px" onclick="event.stopPropagation();openEditModal('${s.id}')" title="Edit week">✎</button></td>
+  </tr>`).join('')+'</tbody>';
+}
+
+function selectWeekAndGo(id){
+  currentWeekId=id;
+  showPage('dashboard',document.querySelector('.hn'));
+  setTimeout(()=>{el('week-selector').value=id;selectWeek(id);},100);
+}
+
+// ── SETTINGS PAGE ─────────────────────────────────────────
+function renderSettingsPage(){
+  const T=DB.settings;
+  el('st-total').value=T.total; el('st-warn').value=T.warn;
+  el('st-ops').value=T.ops;     el('st-adm').value=T.adm; el('st-trn').value=T.trn;
+  // Populate default expense fields
+  const de=T.defExpenses||{};
+  const bm=T.expBenchmarks||{};
+  ['supplies', 'workmansComp', 'liability', 'rent', 'utilities', 'vehicle', 'marketing', 'software', 'recruiting', 'professional', 'officeEssentials', 'misc'].forEach(k=>{
+    const f=document.getElementById('sd-'+k); if(f) f.value=de[k]||'';
+    const b=document.getElementById('sb-'+k); if(b) b.value=bm[k]||'';
+  });
+  // Populate revenue reference from most recent week or DB setting
+  const refRevEl=document.getElementById('sd-ref-rev');
+  if(refRevEl){
+    const storedRef=DB.settings.defRefRev||0;
+    if(storedRef>0){ refRevEl.value=storedRef; }
+    else {
+      // Try to use most recent week's revenue as default reference
+      const latestWk=Object.keys(DB.weeks).sort().reverse()[0];
+      const latestRev=latestWk?DB.weeks[latestWk].revenue||0:0;
+      if(latestRev>0) refRevEl.value=latestRev;
+    }
+  }
+  setTimeout(updateExpPcts,50);
+  el('set-week-count').textContent=Object.keys(DB.weeks).length+' weeks loaded';
+  el('set-emp-count').textContent=Object.keys(DB.employees).length+' employees tracked';
+}
+
+function saveTargets(){
+  DB.settings.total=parseInt(el('st-total').value)||55;
+  DB.settings.warn=parseInt(el('st-warn').value)||65;
+  DB.settings.ops=parseInt(el('st-ops').value)||40;
+  DB.settings.adm=parseInt(el('st-adm').value)||12;
+  DB.settings.trn=parseInt(el('st-trn').value)||5;
+  dbSave();
+  alert('Targets saved!');
+}
+
+function saveDefaultExpenses(){
+  if(!DB.settings.defExpenses) DB.settings.defExpenses={};
+  ['supplies','workmansComp','rent','utilities','officeEssentials','misc'].forEach(k=>{
+    const f=document.getElementById('sd-'+k);
+    DB.settings.defExpenses[k]=f?parseFloat(f.value)||0:0;
+  });
+  dbSave();
+  alert('Default expenses saved. They will pre-fill on your next Load Week.');
+}
+
+function getDefaultExpenses(){
+  return DB.settings.defExpenses||{...DEFAULT_SETTINGS.defExpenses};
+}
+
+// ── IMPORT MODAL ──────────────────────────────────────────
+let pendingImport=null;
+
+function openImport(){
+  pendingImport=null;
+  el('imp-preview').innerHTML='';
+  el('imp-ok').style.display='none';
+  el('imp-ok').textContent='Import Week';
+  const pt=el('imp-paste-text'); if(pt){pt.value='';el('imp-paste-preview').innerHTML='';}
+  impMode='file'; setImpMode('file');
+  el('imp-dz').innerHTML='<div class="dz-icon">📄</div><div class="dz-title">Drop payroll CSV here</div><div class="dz-sub">Or click to browse · CSV or XLSX · Gusto payroll format</div>';
+  el('imp-dz').onclick=()=>el('imp-file').click();
+  // Default to next Saturday
+  const d=new Date(); const day=d.getDay(); d.setDate(d.getDate()+(day===6?0:6-day));
+  el('imp-date').value=d.toISOString().slice(0,10);
+  el('imp-rev').value='';
+  // ── Pre-fill expense fields with saved defaults ──
+  const de=DB.settings.defExpenses||{};
+  ['supplies','workmansComp','liability','rent','utilities','vehicle',
+   'marketing','software','recruiting','professional','officeEssentials','misc'].forEach(k=>{
+    const f=document.getElementById('imp-'+k);
+    if(f) f.value=de[k]||'';
+  });
+  el('modal-import').style.display='flex';
+}
+
+function handleDrop(e){
+  e.preventDefault();el('imp-dz').classList.remove('drag');
+  const f=e.dataTransfer.files[0];if(f)readFile(f);
+}
+function handleFileInput(inp){const f=inp.files[0];if(f)readFile(f);inp.value='';}
+
+function parseRowsToEmployees(rows){
+  if(!rows||rows.length<2) return null;
+  const pm=v=>{ if(typeof v==='number') return v; return parseFloat(String(v||'').replace(/[$,\s"]/g,''))||0; };
+
+  // Strip surrounding quotes from header cells
+  const hdr=rows[0].map(h=>String(h||'').trim().replace(/^"|"$/g,'').toLowerCase());
+
+  // ── Detect format ──────────────────────────────────────────
+  // Format A (Gusto payroll): Team member | Method | Gross pay | Deductions | Tips | Reimbursements | Taxes | Benefits | Net pay
+  // Format B (Company cost):  Name        | Gross Pay | Reimbursements | Company Taxes | Company Benefits | Subtotal
+  //   Format B header has 'subtotal' and 'company taxes' — Subtotal = true all-in company cost
+
+  const subtotalIdx = hdr.findIndex(h=>h.includes('subtotal'));
+  const isFormatB   = subtotalIdx !== -1;
+
+  if(isFormatB){
+    // Format B — Company Cost Report
+    // Name is first column (may say "Employees (N)" as header — still col 0)
+    const nameIdx    = 0;
+    const grossIdx   = hdr.findIndex(h=>h.includes('gross pay')||h==='gross');
+    const rmbIdx     = hdr.findIndex(h=>h.includes('reimburs'));
+    const coTaxIdx   = hdr.findIndex(h=>h.includes('company tax')||h.includes('co. tax'));
+    const coBenIdx   = hdr.findIndex(h=>h.includes('company ben')||h.includes('co. ben'));
+
+    const employees=[];
+    for(let i=1;i<rows.length;i++){
+      const row=rows[i];
+      const name=String(row[nameIdx]||'').replace(/^"|"$/g,'').trim();
+      if(!name||name.toLowerCase().includes('grand total')||name.toLowerCase().includes('total')) continue;
+      const gross       = pm(row[grossIdx]);
+      const reimb       = rmbIdx!==-1?pm(row[rmbIdx]):0;
+      const coTax       = coTaxIdx!==-1?pm(row[coTaxIdx]):0;
+      const coBen       = coBenIdx!==-1?pm(row[coBenIdx]):0;
+      // Subtotal = true all-in company cost (Gross + Reimb + Co.Taxes + Co.Benefits)
+      // Use the subtotal column directly as it is the authoritative total
+      const subtotal    = pm(row[subtotalIdx]);
+      // gross stored as subtotal (true company cost), raw gross stored separately
+      employees.push({
+        name,
+        gross:          subtotal,   // all-in company cost — what you want as the payroll figure
+        grossWages:     gross,      // employee wages only
+        reimbursements: reimb,
+        taxes:          coTax,
+        benefits:       coBen,
+        deductions:     0,
+        tips:           0,
+        net:            gross,      // no net pay in this format; use wages as proxy
+      });
+    }
+    return employees.length>0?employees:null;
+
+  } else {
+    // Format A — Gusto Payroll Detail Report
+    const nameIdx  = hdr.findIndex(h=>h.includes('team member')||h==='name'||h.includes('employee'));
+    const grossIdx = hdr.findIndex(h=>h.includes('gross pay')||h==='gross');
+    const taxIdx   = hdr.findIndex(h=>h==='taxes'||h.includes('tax'));
+    const benIdx   = hdr.findIndex(h=>h.includes('benefit'));
+    const netIdx   = hdr.findIndex(h=>h.includes('net pay')||h==='net');
+    const dedIdx   = hdr.findIndex(h=>h.includes('deduction'));
+    const tipsIdx  = hdr.findIndex(h=>h.includes('tip'));
+    const rmbIdx   = hdr.findIndex(h=>h.includes('reimburs'));
+    if(nameIdx===-1||grossIdx===-1) return null;
+    const employees=[];
+    for(let i=1;i<rows.length;i++){
+      const row=rows[i];
+      const name=String(row[nameIdx]||'').replace(/^"|"$/g,'').trim();
+      if(!name||name.toLowerCase().includes('total')||name.toLowerCase().includes('grand total')) continue;
+      const gross=pm(row[grossIdx]);
+      if(gross===0&&!name) continue;
+      employees.push({
+        name, gross,
+        deductions:    dedIdx!==-1?pm(row[dedIdx]):0,
+        tips:          tipsIdx!==-1?pm(row[tipsIdx]):0,
+        reimbursements:rmbIdx!==-1?pm(row[rmbIdx]):0,
+        taxes:         taxIdx!==-1?pm(row[taxIdx]):0,
+        benefits:      benIdx!==-1?pm(row[benIdx]):0,
+        net:           netIdx!==-1?pm(row[netIdx]):0,
+      });
+    }
+    return employees.length>0?employees:null;
+  }
+}
+
+function csvToRows(text){
+  // Normalize ALL line endings: \r\n → \n, then bare \r → \n
+  const normalized = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const lines = normalized.trim().split('\n');
+  return lines.filter(l=>l.trim()!=='').map(line=>{
+    const cols=[];let cur='',inQ=false;
+    for(const ch of line){
+      if(ch==='"')inQ=!inQ;
+      else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}
+      else cur+=ch;
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+}
+
+function xlsxToRows(ab){
+  const wb=XLSX.read(ab,{type:'array',raw:true});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+}
+
+function finishImportParse(emps,filename){
+  pendingImport={emps,filename};
+  const totalGross=emps.reduce((s,e)=>s+e.gross,0);
+  const totalNet=emps.reduce((s,e)=>s+e.net,0);
+  const isFormatB=emps.length>0&&emps[0].grossWages!==undefined;
+  const cats={ops:0,adm:0,trn:0,unk:0};
+  emps.forEach(e=>{const c=getEmployeeCat(e.name);cats[c]=(cats[c]||0)+1;});
+  el('imp-dz').innerHTML='<div class="dz-icon">&#x2705;</div><div class="dz-title">'+emps.length+' employees found</div><div class="dz-sub">'+(isFormatB?'Company Cost Report':'Gusto Payroll Report')+' · '+filename+'</div>';
+  el('imp-preview').innerHTML='<div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono,monospace);font-size:11px;color:var(--ink3)">'
+    +(isFormatB?'<span style="color:var(--grn);font-weight:600">&#10003; Company cost format — Subtotal used as gross</span>':'')
+    +'<span>Total Cost: <strong>$'+totalGross.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong></span>'
+    +(isFormatB?'<span>Wages only: <strong>$'+emps.reduce((s,e)=>s+(e.grossWages||0),0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong></span>':'')
+    +'<span>Ops: <strong>'+cats.ops+'</strong></span>'
+    +'<span>Admin: <strong>'+cats.adm+'</strong></span>'
+    +'<span>Unassigned: <strong>'+cats.unk+'</strong></span>'
+    +'</div>';
+  el('imp-ok').style.display='inline-flex';
+}
+
+function readFile(file){
+  el('imp-dz').innerHTML='<div class="dz-icon">&#x23F3;</div><div class="dz-title">Reading '+file.name+'...</div>';
+  el('imp-dz').onclick=null;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='xlsx'||ext==='xls'){
+    const r=new FileReader();
+    r.onload=function(ev){
+      try{
+        const rows=xlsxToRows(ev.target.result);
+        const emps=parseRowsToEmployees(rows);
+        if(!emps){el('imp-dz').innerHTML='<div class="dz-icon">&#x274C;</div><div class="dz-title">Could not parse XLSX</div><div class="dz-sub">Ensure file has Team Member and Gross Pay columns.</div>';return;}
+        finishImportParse(emps,file.name);
+      }catch(err){el('imp-dz').innerHTML='<div class="dz-icon">&#x274C;</div><div class="dz-title">Error reading XLSX</div><div class="dz-sub">'+err.message+'</div>';}
+    };
+    r.readAsArrayBuffer(file);
+  } else {
+    const r=new FileReader();
+    r.onload=function(ev){
+      const rows=csvToRows(ev.target.result);
+      const emps=parseRowsToEmployees(rows);
+      if(!emps){el('imp-dz').innerHTML='<div class="dz-icon">&#x274C;</div><div class="dz-title">Could not parse CSV</div><div class="dz-sub">Ensure file has Team Member and Gross Pay columns.</div>';return;}
+      finishImportParse(emps,file.name);
+    };
+    r.readAsText(file);
+  }
+}
+
+function parsePayrollCSV(text){
+  return parseRowsToEmployees(csvToRows(text));
+}
+
+
+function confirmImport(){
+  // If in paste mode, pendingImport is already set by previewPayrollPaste
+  if(impMode==='paste'&&!pendingImport){
+    const raw=(el('imp-paste-text').value||'').trim();
+    if(!raw){alert('Paste area is empty.');return;}
+    const emps=parsePastedPayroll(raw);
+    if(!emps||!emps.length){alert('Could not parse pasted data.');return;}
+    pendingImport={emps,filename:'Pasted payroll ('+new Date().toLocaleDateString()+')'};
+  }
+  if(!pendingImport) return;
+  const dateVal=el('imp-date').value;
+  if(!dateVal){el('imp-date').style.borderColor='var(--red)';return;}
+  const rev=parseFloat(el('imp-rev').value)||0;
+  // Register any new employees
+  pendingImport.emps.forEach(e=>{
+    const k=employeeKey(e.name);
+    if(!DB.employees[k]) DB.employees[k]={name:e.name,cat:'unk'};
+  });
+  const expData={supplies:parseFloat(document.getElementById('imp-supplies')?.value)||0,workmansComp:parseFloat(document.getElementById('imp-workmansComp')?.value)||0,liability:parseFloat(document.getElementById('imp-liability')?.value)||0,rent:parseFloat(document.getElementById('imp-rent')?.value)||0,utilities:parseFloat(document.getElementById('imp-utilities')?.value)||0,vehicle:parseFloat(document.getElementById('imp-vehicle')?.value)||0,marketing:parseFloat(document.getElementById('imp-marketing')?.value)||0,software:parseFloat(document.getElementById('imp-software')?.value)||0,recruiting:parseFloat(document.getElementById('imp-recruiting')?.value)||0,professional:parseFloat(document.getElementById('imp-professional')?.value)||0,officeEssentials:parseFloat(document.getElementById('imp-officeEssentials')?.value)||0,misc:parseFloat(document.getElementById('imp-misc')?.value)||0};
+  DB.weeks[dateVal]={date:dateVal,revenue:rev,expenses:expData,employees:pendingImport.emps,filename:pendingImport.filename,imported:new Date().toISOString()};
+  dbSave();
+  closeModal('import');
+  pendingImport=null;
+  currentWeekId=dateVal;
+  showPage('dashboard',document.querySelector('.hn'));
+  setTimeout(renderDashboard,100);
+}
+
+// ── SETTINGS MODAL ────────────────────────────────────────
+function openSettings(){
+  const T=DB.settings;
+  el('ms-total').value=T.total; el('ms-warn').value=T.warn;
+  el('ms-ops').value=T.ops;     el('ms-adm').value=T.adm; el('ms-trn').value=T.trn;
+  el('modal-settings').style.display='flex';
+}
+function saveModalTargets(){
+  DB.settings.total=parseInt(el('ms-total').value)||55;
+  DB.settings.warn=parseInt(el('ms-warn').value)||65;
+  DB.settings.ops=parseInt(el('ms-ops').value)||40;
+  DB.settings.adm=parseInt(el('ms-adm').value)||12;
+  DB.settings.trn=parseInt(el('ms-trn').value)||5;
+  dbSave();
+  closeModal('settings');
+  if(currentPage==='dashboard') renderWeekView(currentWeekId);
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='eldredge_payroll_data.json';a.click();
+}
+
+// ── WEEKLY CASH FLOW EXPORT ───────────────────────────────────
+// Exports a structured CSV for import into the Cash Flow portal.
+// One row per week containing all payroll categories + expense buckets.
+function exportWeeklyCashFlow(){
+  const weeks = Object.keys(DB.weeks).sort();
+  if(!weeks.length){alert('No payroll data to export.');return;}
+
+  const headers = [
+    'week_ending',
+    'revenue',
+    'pay_operations','pay_admin','pay_trainee','pay_other','pay_total',
+    'exp_supplies','exp_workmans_comp','exp_liability','exp_rent',
+    'exp_utilities','exp_vehicle','exp_marketing','exp_software',
+    'exp_recruiting','exp_professional','exp_office','exp_misc','exp_total',
+    'total_cost','net'
+  ];
+
+  const rows = weeks.map(id => {
+    const s = getWeekStats(id);
+    if(!s) return null;
+    const net = s.rev - s.totalPay - s.totalExp;
+    return [
+      id,
+      s.rev.toFixed(2),
+      s.opsPay.toFixed(2), s.admPay.toFixed(2), s.trnPay.toFixed(2), s.unkPay.toFixed(2), s.totalPay.toFixed(2),
+      s.expSupplies.toFixed(2), s.expWorkmansComp.toFixed(2), s.expLiability.toFixed(2), s.expRent.toFixed(2),
+      s.expUtilities.toFixed(2), s.expVehicle.toFixed(2), s.expMarketing.toFixed(2), s.expSoftware.toFixed(2),
+      s.expRecruiting.toFixed(2), s.expProfessional.toFixed(2), s.expOfficeEssentials.toFixed(2), s.expMisc.toFixed(2),
+      s.totalExp.toFixed(2),
+      s.totalCost.toFixed(2),
+      net.toFixed(2)
+    ];
+  }).filter(Boolean);
+
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'eldredge_weekly_cashflow_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  a.remove();
+}
+
+function xlsxDownload(wb, filename){
+  XLSX.writeFile(wb, filename);
+}
+
+function exportWeekExcel(){
+  if(!currentWeekId){ alert('No week selected.'); return; }
+  const w = DB.weeks[currentWeekId];
+  const stats = getWeekStats(currentWeekId);
+  const wb = XLSX.utils.book_new();
+  const catLabels = {ops:'Operations', adm:'Admin', trn:'Trainee', unk:'Unassigned'};
+  const pOf = (n,d) => d>0 ? +(n/d*100).toFixed(2) : '';
+
+  // ── Sheet 1: Top-line Summary ──
+  const summaryRows = [
+    {'':' WEEK ENDING '+currentWeekId, ' ':'', '  ':''},
+    {'':'', ' ':'', '  ':''},
+    {'':'TOP LINE', ' ':'Amount ($)', '  ':'% of Revenue'},
+    {'':'Revenue',           ' ': stats.rev||0,               '  ': '100.00%'},
+    {'':'Operations Payroll',' ': +stats.opsPay.toFixed(2),   '  ': stats.rev>0?pOf(stats.opsPay,stats.rev)+'%':''},
+    {'':'Admin Payroll',     ' ': +stats.admPay.toFixed(2),   '  ': stats.rev>0?pOf(stats.admPay,stats.rev)+'%':''},
+    {'':'Trainee Payroll',   ' ': +stats.trnPay.toFixed(2),   '  ': stats.rev>0?pOf(stats.trnPay,stats.rev)+'%':''},
+    {'':'Unassigned Payroll',' ': +stats.unkPay.toFixed(2),   '  ': stats.rev>0?pOf(stats.unkPay,stats.rev)+'%':''},
+    {'':'TOTAL PAYROLL',     ' ': +stats.totalPay.toFixed(2), '  ': stats.rev>0?pOf(stats.totalPay,stats.rev)+'%':''},
+    {'':'', ' ':'', '  ':''},
+    {'':'OTHER EXPENSES',     ' ':'Amount ($)',                '  ':'% of Revenue'},
+    {'':'Supplies',           ' ': +(stats.expSupplies||0).toFixed(2),         '  ': stats.rev>0?pOf(stats.expSupplies||0,stats.rev)+'%':''},
+    {'':'Workman\'s Comp',    ' ': +(stats.expWorkmansComp||0).toFixed(2),    '  ': stats.rev>0?pOf(stats.expWorkmansComp||0,stats.rev)+'%':''},
+    {'':'Rent',               ' ': +(stats.expRent||0).toFixed(2),             '  ': stats.rev>0?pOf(stats.expRent||0,stats.rev)+'%':''},
+    {'':'Utilities',          ' ': +(stats.expUtilities||0).toFixed(2),        '  ': stats.rev>0?pOf(stats.expUtilities||0,stats.rev)+'%':''},
+    {'':'Office Essentials',  ' ': +(stats.expOfficeEssentials||0).toFixed(2), '  ': stats.rev>0?pOf(stats.expOfficeEssentials||0,stats.rev)+'%':''},
+    {'':'Misc',               ' ': +(stats.expMisc||0).toFixed(2),             '  ': stats.rev>0?pOf(stats.expMisc||0,stats.rev)+'%':''},
+    {'':'TOTAL EXPENSES',     ' ': +(stats.totalExp||0).toFixed(2),            '  ': stats.rev>0?pOf(stats.totalExp||0,stats.rev)+'%':''},
+    {'':'', ' ':'', '  ':''},
+    {'':'NET MARGIN',         ' ': stats.rev>0?+(stats.rev-stats.totalCost).toFixed(2):'', '  ': stats.rev>0?pOf(stats.rev-stats.totalCost,stats.rev)+'%':''},
+    {'':'', ' ':'', '  ':''},
+    {'':'TARGETS',            ' ':'Target %',                 '  ':'Status'},
+    {'':'Total Payroll Target','  ':DB.settings.total+'%',    ' ': stats.rev>0?(pOf(stats.totalPay,stats.rev)<=DB.settings.total?'ON TARGET':'OVER TARGET'):''},
+    {'':'Operations Target',  '  ':DB.settings.ops+'%',      ' ': stats.rev>0?(pOf(stats.opsPay,stats.rev)<=DB.settings.ops?'On target':'Over target'):''},
+    {'':'Admin Target',       '  ':DB.settings.adm+'%',      ' ': stats.rev>0?(pOf(stats.admPay,stats.rev)<=DB.settings.adm?'On target':'Over target'):''},
+    {'':'Trainee Target',     '  ':DB.settings.trn+'%',      ' ': stats.rev>0?(pOf(stats.trnPay,stats.rev)<=DB.settings.trn?'On target':'Over target'):''},
+  ];
+  const ws1 = XLSX.utils.json_to_sheet(summaryRows,{skipHeader:true});
+  ws1['!cols'] = [{wch:24},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+
+  // ── Sheet 2: Employee Detail ──
+  const empRows = (w.employees||[]).slice().sort((a,b)=>b.gross-a.gross).map(e => {
+    const cat = getEmployeeCat(e.name, currentWeekId);
+    return {
+      'Employee':      e.name,
+      'Category':      catLabels[cat]||'Unassigned',
+      'Gross Pay':     +e.gross.toFixed(2),
+      'Tips':          e.tips||0,
+      'Reimbursements':e.reimbursements||0,
+      'Deductions':    e.deductions||0,
+      'Taxes':         e.taxes||0,
+      'Benefits':      e.benefits||0,
+      'Net Pay':       e.net||0,
+      '% of Revenue':  stats.rev>0?+(e.gross/stats.rev*100).toFixed(2):'',
+    };
+  });
+  // Add totals row
+  empRows.push({
+    'Employee':'TOTALS','Category':'',
+    'Gross Pay':   +empRows.reduce((s,r)=>s+(r['Gross Pay']||0),0).toFixed(2),
+    'Tips':        +empRows.reduce((s,r)=>s+(r['Tips']||0),0).toFixed(2),
+    'Reimbursements':+empRows.reduce((s,r)=>s+(r['Reimbursements']||0),0).toFixed(2),
+    'Deductions':  +empRows.reduce((s,r)=>s+(r['Deductions']||0),0).toFixed(2),
+    'Taxes':       +empRows.reduce((s,r)=>s+(r['Taxes']||0),0).toFixed(2),
+    'Benefits':    +empRows.reduce((s,r)=>s+(r['Benefits']||0),0).toFixed(2),
+    'Net Pay':     +empRows.reduce((s,r)=>s+(r['Net Pay']||0),0).toFixed(2),
+    '% of Revenue':'',
+  });
+  const ws2 = XLSX.utils.json_to_sheet(empRows);
+  ws2['!cols'] = [{wch:28},{wch:12},{wch:12},{wch:10},{wch:16},{wch:12},{wch:10},{wch:10},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Employee Detail');
+
+  xlsxDownload(wb, 'Eldredge_Payroll_' + currentWeekId + '.xlsx');
+}
+
+function exportYTDExcel(){
+  const yrSel = el('ytd-year-sel');
+  const year = yrSel ? yrSel.value : new Date().getFullYear().toString();
+  const weekIds = Object.keys(DB.weeks).sort().filter(id=>id.startsWith(year+'-'));
+  if(!weekIds.length){ alert('No weeks loaded for '+year+'.'); return; }
+
+  const wb = XLSX.utils.book_new();
+  const catLabels = {ops:'Operations', adm:'Admin', trn:'Trainee', unk:'Unassigned'};
+
+  // Compute all stats first
+  const allStats = weekIds.map(id=>({id, s:getWeekStats(id)}));
+  const totRev = allStats.reduce((s,r)=>s+(r.s.rev||0),0);
+  const totOps = allStats.reduce((s,r)=>s+r.s.opsPay,0);
+  const totAdm = allStats.reduce((s,r)=>s+r.s.admPay,0);
+  const totTrn = allStats.reduce((s,r)=>s+r.s.trnPay,0);
+  const totUnk = allStats.reduce((s,r)=>s+r.s.unkPay,0);
+  const totPay = allStats.reduce((s,r)=>s+r.s.totalPay,0);
+  const pOf = (n,d)=>d>0?+(n/d*100).toFixed(2):'';
+
+  // ── Sheet 1: YTD Top-line Summary ──
+  const topRows = [
+    {'':year+' YEAR TO DATE  ('+weekIds.length+' weeks)', ' ':'', '  ':'', '   ':''},
+    {'':'', ' ':'', '  ':'', '   ':''},
+    {'':'TOP LINE',        ' ':'Total ($)',            '  ':'% of Revenue',         '   ':'Avg / Week'},
+    {'':'Revenue',         ' ':+totRev.toFixed(2),    '  ':'100.00%',               '   ':+(totRev/weekIds.length).toFixed(2)},
+    {'':'Operations Pay',  ' ':+totOps.toFixed(2),    '  ':pOf(totOps,totRev)+'%', '   ':+(totOps/weekIds.length).toFixed(2)},
+    {'':'Admin Pay',       ' ':+totAdm.toFixed(2),    '  ':pOf(totAdm,totRev)+'%', '   ':+(totAdm/weekIds.length).toFixed(2)},
+    {'':'Trainee Pay',     ' ':+totTrn.toFixed(2),    '  ':pOf(totTrn,totRev)+'%', '   ':+(totTrn/weekIds.length).toFixed(2)},
+    {'':'Unassigned Pay',  ' ':+totUnk.toFixed(2),    '  ':pOf(totUnk,totRev)+'%', '   ':+(totUnk/weekIds.length).toFixed(2)},
+    {'':'TOTAL PAYROLL',   ' ':+totPay.toFixed(2),    '  ':pOf(totPay,totRev)+'%', '   ':+(totPay/weekIds.length).toFixed(2)},
+    {'':'Net (Rev-Payroll)',' ':+(totRev-totPay).toFixed(2),'  ':'',               '   ':+((totRev-totPay)/weekIds.length).toFixed(2)},
+    {'':'', ' ':'', '  ':'', '   ':''},
+    {'':'TARGETS',         ' ':'Target %',            '  ':'Actual %',              '   ':'Status'},
+    {'':'Total Payroll',   ' ':DB.settings.total+'%', '  ':pOf(totPay,totRev)+'%', '   ':pOf(totPay,totRev)<=DB.settings.total?'ON TARGET':'OVER TARGET'},
+    {'':'Operations',      ' ':DB.settings.ops+'%',   '  ':pOf(totOps,totRev)+'%', '   ':pOf(totOps,totRev)<=DB.settings.ops?'On target':'Over target'},
+    {'':'Admin',           ' ':DB.settings.adm+'%',   '  ':pOf(totAdm,totRev)+'%', '   ':pOf(totAdm,totRev)<=DB.settings.adm?'On target':'Over target'},
+    {'':'Trainee',         ' ':DB.settings.trn+'%',   '  ':pOf(totTrn,totRev)+'%', '   ':pOf(totTrn,totRev)<=DB.settings.trn?'On target':'Over target'},
+  ];
+  const wsTop = XLSX.utils.json_to_sheet(topRows,{skipHeader:true});
+  wsTop['!cols'] = [{wch:22},{wch:16},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wsTop, year+' Top Line');
+
+  // ── Sheet 2: Weekly Detail ──
+  const summaryRows = allStats.map(({id,s}) => ({
+    'Week Ending':     id,
+    'Revenue':         s.rev||'',
+    'Ops Payroll':     +s.opsPay.toFixed(2),
+    'Ops % Rev':       s.rev>0?pOf(s.opsPay,s.rev)+'%':'',
+    'Admin Payroll':   +s.admPay.toFixed(2),
+    'Admin % Rev':     s.rev>0?pOf(s.admPay,s.rev)+'%':'',
+    'Trainee Payroll': +s.trnPay.toFixed(2),
+    'Trainee % Rev':   s.rev>0?pOf(s.trnPay,s.rev)+'%':'',
+    'Unassigned':      +s.unkPay.toFixed(2),
+    'Total Payroll':   +s.totalPay.toFixed(2),
+    'Total % Rev':     s.rev>0?pOf(s.totalPay,s.rev)+'%':'',
+    'Net (Rev-Payroll)':s.rev>0?+(s.rev-s.totalPay).toFixed(2):'',
+    'Employees':       (DB.weeks[id].employees||[]).length,
+  }));
+  // Totals row
+  summaryRows.push({
+    'Week Ending':     year+' TOTAL',
+    'Revenue':         +totRev.toFixed(2),
+    'Ops Payroll':     +totOps.toFixed(2),
+    'Ops % Rev':       pOf(totOps,totRev)+'%',
+    'Admin Payroll':   +totAdm.toFixed(2),
+    'Admin % Rev':     pOf(totAdm,totRev)+'%',
+    'Trainee Payroll': +totTrn.toFixed(2),
+    'Trainee % Rev':   pOf(totTrn,totRev)+'%',
+    'Unassigned':      +totUnk.toFixed(2),
+    'Total Payroll':   +totPay.toFixed(2),
+    'Total % Rev':     pOf(totPay,totRev)+'%',
+    'Net (Rev-Payroll)':+(totRev-totPay).toFixed(2),
+    'Employees':       '',
+  });
+  const ws1 = XLSX.utils.json_to_sheet(summaryRows);
+  ws1['!cols'] = [{wch:14},{wch:12},{wch:14},{wch:10},{wch:14},{wch:10},{wch:16},{wch:12},{wch:12},{wch:14},{wch:10},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws1, year+' Weekly Detail');
+
+  // Sheet 2: Employee breakdown by week (all weeks in year)
+  const allRows = [];
+  weekIds.forEach(id => {
+    const w = DB.weeks[id];
+    (w.employees||[]).forEach(e => {
+      const cat = getEmployeeCat(e.name, id);
+      allRows.push({
+        'Week Ending': id,
+        'Employee':    e.name,
+        'Category':    catLabels[cat]||'Unassigned',
+        'Gross Pay':   +e.gross.toFixed(2),
+        'Tips':        e.tips||0,
+        'Taxes':       e.taxes||0,
+        'Benefits':    e.benefits||0,
+        'Reimbursements': e.reimbursements||0,
+        'Net Pay':     e.net||0,
+      });
+    });
+  });
+  const ws2 = XLSX.utils.json_to_sheet(allRows);
+  ws2['!cols'] = [{wch:14},{wch:26},{wch:14},{wch:12},{wch:8},{wch:10},{wch:10},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws2, year+' Employee Detail');
+
+  XLSX.writeFile(wb, 'Eldredge_Payroll_YTD_'+year+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+function exportAllExcel(){
+  if(Object.keys(DB.weeks).length===0){ alert('No weeks loaded.'); return; }
+  const wb = XLSX.utils.book_new();
+  const catLabels = {ops:'Operations', adm:'Admin', trn:'Trainee', unk:'Unassigned'};
+
+  // Sheet 1: Weekly summary for all weeks
+  const weekIds = Object.keys(DB.weeks).sort();
+  const summaryRows = weekIds.map(id => {
+    const s = getWeekStats(id);
+    return {
+      'Week Ending': id,
+      'Revenue': s.rev||'',
+      'Ops Payroll': +s.opsPay.toFixed(2),
+      'Ops % Rev': s.rev>0?+(s.opsPay/s.rev*100).toFixed(2):'',
+      'Admin Payroll': +s.admPay.toFixed(2),
+      'Admin % Rev': s.rev>0?+(s.admPay/s.rev*100).toFixed(2):'',
+      'Trainee Payroll': +s.trnPay.toFixed(2),
+      'Trainee % Rev': s.rev>0?+(s.trnPay/s.rev*100).toFixed(2):'',
+      'Unassigned': +s.unkPay.toFixed(2),
+      'Total Payroll': +s.totalPay.toFixed(2),
+      'Total % Rev': s.rev>0?+(s.totalPay/s.rev*100).toFixed(2):'',
+      'Net (Rev - Payroll)': s.rev>0?+(s.rev-s.totalPay).toFixed(2):'',
+    };
+  });
+  const ws1 = XLSX.utils.json_to_sheet(summaryRows);
+  ws1['!cols'] = [{wch:14},{wch:12},{wch:14},{wch:10},{wch:14},{wch:10},{wch:14},{wch:10},{wch:12},{wch:14},{wch:10},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Weekly Summary');
+
+  // Sheet 2+: One tab per week with employee detail
+  weekIds.forEach(id => {
+    const w = DB.weeks[id];
+    const stats = getWeekStats(id);
+    const empRows = (w.employees||[]).slice().sort((a,b)=>b.gross-a.gross).map(e => ({
+      'Employee': e.name,
+      'Category': catLabels[getEmployeeCat(e.name, id)]||'Unassigned',
+      'Gross Pay': e.gross,
+      'Tips': e.tips,
+      'Reimbursements': e.reimbursements,
+      'Deductions': e.deductions,
+      'Taxes': e.taxes,
+      'Benefits': e.benefits,
+      'Net Pay': e.net,
+    }));
+    // Add totals row
+    empRows.push({
+      'Employee': 'TOTALS',
+      'Category': '',
+      'Gross Pay': +empRows.reduce((s,r)=>s+(r['Gross Pay']||0),0).toFixed(2),
+      'Tips': +empRows.reduce((s,r)=>s+(r['Tips']||0),0).toFixed(2),
+      'Reimbursements': +empRows.reduce((s,r)=>s+(r['Reimbursements']||0),0).toFixed(2),
+      'Deductions': +empRows.reduce((s,r)=>s+(r['Deductions']||0),0).toFixed(2),
+      'Taxes': +empRows.reduce((s,r)=>s+(r['Taxes']||0),0).toFixed(2),
+      'Benefits': +empRows.reduce((s,r)=>s+(r['Benefits']||0),0).toFixed(2),
+      'Net Pay': +empRows.reduce((s,r)=>s+(r['Net Pay']||0),0).toFixed(2),
+    });
+    const ws = XLSX.utils.json_to_sheet(empRows);
+    ws['!cols'] = [{wch:28},{wch:12},{wch:12},{wch:10},{wch:16},{wch:12},{wch:10},{wch:10},{wch:12}];
+    // Safe sheet name: Excel max 31 chars, no special chars
+    const sheetName = ('Wk '+id).slice(0,31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  xlsxDownload(wb, 'Eldredge_Payroll_AllWeeks_' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+
+function exportRosterExcel(){
+  if(Object.keys(DB.employees).length===0){ alert('No employees tracked yet.'); return; }
+  const catLabels = {ops:'Operations', adm:'Admin', trn:'Trainee', unk:'Unassigned'};
+  const wb = XLSX.utils.book_new();
+
+  // Build roster with stats
+  const empMap={};
+  Object.values(DB.weeks).forEach(w=>{
+    (w.employees||[]).forEach(e=>{
+      const k=employeeKey(e.name);
+      if(!empMap[k]) empMap[k]={name:e.name,weeks:0,totalGross:0,totalNet:0,totalTips:0,totalTaxes:0,totalBenefits:0};
+      empMap[k].weeks++;
+      empMap[k].totalGross+=e.gross;
+      empMap[k].totalNet+=e.net;
+      empMap[k].totalTips+=e.tips;
+      empMap[k].totalTaxes+=e.taxes;
+      empMap[k].totalBenefits+=e.benefits;
+    });
+  });
+
+  const rows = Object.values(empMap).sort((a,b)=>a.name.localeCompare(b.name)).map(e=>({
+    'Employee': e.name,
+    'Category': catLabels[getEmployeeCat(e.name)]||'Unassigned',
+    'Weeks in Payroll': e.weeks,
+    'Total Gross': +e.totalGross.toFixed(2),
+    'Avg Gross/Week': +(e.totalGross/e.weeks).toFixed(2),
+    'Total Net': +e.totalNet.toFixed(2),
+    'Total Tips': +e.totalTips.toFixed(2),
+    'Total Taxes': +e.totalTaxes.toFixed(2),
+    'Total Benefits': +e.totalBenefits.toFixed(2),
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{wch:28},{wch:14},{wch:16},{wch:14},{wch:16},{wch:12},{wch:12},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Employee Roster');
+
+  // Second sheet: breakdown by category
+  const cats = ['ops','adm','trn','unk'];
+  const catRows = cats.map(cat=>{
+    const emps = Object.values(empMap).filter(e=>getEmployeeCat(e.name)===cat);
+    if(emps.length===0) return null;
+    return {
+      'Category': catLabels[cat],
+      'Headcount': emps.length,
+      'Total Gross (all weeks)': +emps.reduce((s,e)=>s+e.totalGross,0).toFixed(2),
+      'Avg Gross/Week per Person': +(emps.reduce((s,e)=>s+e.totalGross/e.weeks,0)/emps.length).toFixed(2),
+    };
+  }).filter(Boolean);
+  const ws2 = XLSX.utils.json_to_sheet(catRows);
+  ws2['!cols'] = [{wch:16},{wch:12},{wch:26},{wch:28}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'By Category');
+
+  xlsxDownload(wb, 'Eldredge_Employee_Roster_' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+
+function clearAllData(){
+  if(!confirm('Delete all weeks, employees, and settings?')) return;
+  DB={weeks:{},employees:{},settings:{...DEFAULT_SETTINGS}};
+  dbSave();
+  renderDashboard();
+}
+
+function renderYTDExpCard(ytd){
+  const {rev=0,totalExp=0,totalCost=0,expSupplies=0,expWorkmansComp=0,expLiability=0,expRent=0,expUtilities=0,expVehicle=0,expMarketing=0,expSoftware=0,expRecruiting=0,expProfessional=0,expOfficeEssentials=0,expMisc=0} = ytd;
+  const card=document.getElementById('ytd-exp-card');
+  if(!card) return;
+  card.style.display='flex';card.style.gap='10px';card.style.flexWrap='wrap';
+  const netVal=rev>0?rev-totalCost:null;
+  card.innerHTML=
+    '<div class="hm exp" style="border-top:3px solid var(--red);flex:1;min-width:160px">'
+    +'<div class="hm-lbl">YTD Other Expenses</div>'
+    +'<div class="hm-val" style="color:var(--red)">'+(totalExp>0?fmtK(totalExp):'—')+'</div>'
+    +'<div class="hm-sub">'+(rev>0&&totalExp>0?pf(pct(totalExp,rev))+' of rev':totalExp>0?'enter revenue':'not entered')+'</div>'
+    +'</div>'
+    +'<div class="hm net" style="border-top:3px solid var(--grn);flex:1;min-width:160px">'
+    +'<div class="hm-lbl">YTD Net Margin</div>'
+    +'<div class="hm-val" style="color:'+(netVal!==null&&netVal>=0?'var(--grn)':'var(--red)')+'">'+( netVal!==null?fmtK(netVal):'—')+'</div>'
+    +'<div class="hm-sub">'+(netVal!==null?pf(pct(netVal,rev))+' margin':'enter revenue')+'</div>'
+    +'</div>';
+}
+
+
+function toggleExpDropdown(id){
+  const d=document.getElementById(id);
+  if(!d) return;
+  const opening = d.style.display==='none'||d.style.display==='';
+  d.style.display=opening?'block':'none';
+  if(opening){
+    setTimeout(()=>{
+      const handler=e=>{
+        if(!d.parentElement.contains(e.target)){
+          d.style.display='none';
+          document.removeEventListener('click',handler);
+        }
+      };
+      document.addEventListener('click',handler);
+    },10);
+  }
+}
+
+
+function updateExpPcts(){
+  const refRev = parseFloat(document.getElementById('sd-ref-rev')?.value)||0;
+  ['supplies', 'workmansComp', 'liability', 'rent', 'utilities', 'vehicle', 'marketing', 'software', 'recruiting', 'professional', 'officeEssentials', 'misc'].forEach(k=>{
+    const amt = parseFloat(document.getElementById('sd-'+k)?.value)||0;
+    const bm  = parseFloat(document.getElementById('sb-'+k)?.value)||0;
+    const sp  = document.getElementById('sp-'+k);
+    if(!sp) return;
+    if(refRev>0 && amt>0){
+      const pct = (amt/refRev*100);
+      const diff = bm>0 ? pct-bm : 0;
+      const color = bm===0 ? 'var(--ink2)'
+                  : diff <= 0 ? 'var(--grn)'
+                  : diff <= 1 ? 'var(--amb)'
+                  : 'var(--red)';
+      sp.textContent = pct.toFixed(1)+'%';
+      sp.style.color = color;
+      sp.title = bm>0 ? (diff<=0?'Under benchmark by '+Math.abs(diff).toFixed(1)+'%':'Over benchmark by '+diff.toFixed(1)+'%') : '';
+    } else if(refRev===0){
+      sp.textContent = amt>0 ? '—' : '—';
+      sp.style.color = 'var(--ink3)';
+    } else {
+      sp.textContent = '—';
+      sp.style.color = 'var(--ink3)';
+    }
+  });
+}
+
+function backfillExpenses(){
+  const wkIds = Object.keys(DB.weeks);
+  if(!wkIds.length){ alert('No weeks loaded yet.'); return; }
+  const de = DB.settings.defExpenses||{};
+  const hasDefaults = Object.values(de).some(v=>v>0);
+  if(!hasDefaults){
+    alert('No default expenses set yet. Enter your default amounts in the "Default weekly expenses" card above and save them first.');
+    return;
+  }
+
+  // Count weeks that have no expenses recorded
+  const noExpWks = wkIds.filter(id=>{
+    const exp = DB.weeks[id].expenses||{};
+    return !Object.values(exp).some(v=>v>0);
+  });
+  const partialWks = wkIds.filter(id=>{
+    const exp = DB.weeks[id].expenses||{};
+    return Object.values(exp).some(v=>v>0) && Object.keys(de).some(k=>!exp[k]||exp[k]===0);
+  });
+
+  if(noExpWks.length===0 && partialWks.length===0){
+    alert('All '+wkIds.length+' weeks already have expense data recorded.');
+    return;
+  }
+
+  const msg = [
+    noExpWks.length ? noExpWks.length+' week'+(noExpWks.length!==1?'s':'')+' with no expenses → will be filled with your defaults' : '',
+    partialWks.length ? partialWks.length+' week'+(partialWks.length!==1?'s':'')+' with partial expenses → missing categories will be filled (existing values kept)' : '',
+  ].filter(Boolean).join('\n');
+
+  if(!confirm('Apply default expenses?\n\n'+msg+'\n\nExisting values will NOT be overwritten.')) return;
+
+  let filled=0, partial=0;
+  wkIds.forEach(id=>{
+    const w = DB.weeks[id];
+    if(!w.expenses) w.expenses={};
+    let changed=false;
+    Object.keys(de).forEach(k=>{
+      if(!w.expenses[k]||w.expenses[k]===0){
+        w.expenses[k]=de[k]||0;
+        changed=true;
+      }
+    });
+    if(changed){
+      if(noExpWks.includes(id)) filled++;
+      else partial++;
+    }
+  });
+
+  dbSave();
+
+  // Refresh dashboard if on it
+  if(curPage==='dashboard') renderDashboard();
+
+  alert('Done! Applied defaults to '+filled+' empty week'+(filled!==1?'s':'')+(partial?' and filled gaps in '+partial+' partial week'+(partial!==1?'s':''):'')+'. Existing values were not changed.');
+}
+
+function openAddEmployee(){
+  if(!currentWeekId){ alert('Please select or load a week first.'); return; }
+  // Clear fields
+  ['ae-name','ae-gross','ae-net','ae-taxes','ae-benefits','ae-reimb','ae-tips'].forEach(id=>{
+    const f=document.getElementById(id); if(f) f.value='';
+  });
+  document.getElementById('ae-cat').value='adm';
+  document.getElementById('ae-error').style.display='none';
+  el('modal-add-emp').style.display='flex';
+  setTimeout(()=>document.getElementById('ae-name').focus(),100);
+}
+
+function removeManualEmployee(name, weekId){
+  const week=DB.weeks[weekId];
+  if(!week||!week.employees) return;
+  const emp=week.employees.find(e=>e.name===name);
+  if(!emp){ alert('Employee not found.'); return; }
+  if(!emp.manualEntry){ alert('Only manually added employees can be removed here.\nTo remove imported employees, reload the week with an updated CSV.'); return; }
+  if(!confirm('Remove '+name+' from week ending '+weekId+'?')) return;
+  week.employees=week.employees.filter(e=>e.name!==name);
+  dbSave();
+  renderWeekView(weekId);
+  if(currentPage==='dashboard') renderDashboard();
+}
+
+function confirmAddEmployee(){
+  const name = (document.getElementById('ae-name').value||'').trim();
+  const gross = parseFloat(document.getElementById('ae-gross').value)||0;
+  const errEl = document.getElementById('ae-error');
+
+  if(!name){ errEl.textContent='Name is required.'; errEl.style.display='block'; return; }
+  if(gross===0){ errEl.textContent='Gross pay is required.'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+
+  if(!currentWeekId||!DB.weeks[currentWeekId]){ alert('No week selected.'); return; }
+
+  // Check for duplicate in this week
+  const week = DB.weeks[currentWeekId];
+  const nameKey = name.toLowerCase().trim();
+  const exists = (week.employees||[]).find(e=>(e.name||'').toLowerCase().trim()===nameKey);
+  if(exists){
+    if(!confirm(name+' already exists in this week. Add anyway?')) return;
+  }
+
+  const newEmp = {
+    name,
+    gross,
+    net:           parseFloat(document.getElementById('ae-net').value)||0,
+    taxes:         parseFloat(document.getElementById('ae-taxes').value)||0,
+    benefits:      parseFloat(document.getElementById('ae-benefits').value)||0,
+    reimbursements:parseFloat(document.getElementById('ae-reimb').value)||0,
+    tips:          parseFloat(document.getElementById('ae-tips').value)||0,
+    deductions:    0,
+    manualEntry:   true,  // flag so we know this was manually added
+  };
+
+  // Register employee globally with chosen category
+  const k = employeeKey(name);
+  const cat = document.getElementById('ae-cat').value;
+  if(!DB.employees[k]) DB.employees[k]={name,cat};
+
+  // Store per-week category override
+  if(!DB.employees[k].weekCats) DB.employees[k].weekCats={};
+  DB.employees[k].weekCats[currentWeekId]=cat;
+
+  // Add to week
+  if(!week.employees) week.employees=[];
+  week.employees.push(newEmp);
+  dbSave();
+
+  closeModal('add-emp');
+  renderWeekView(currentWeekId);
+  if(currentPage==='dashboard') renderDashboard();
+}
+
+
+// ── EMPLOYEE BENCHMARKS ──────────────────────────────────
+function renderEmpBenchmarks(){
+  const empKeys = Object.keys(DB.employees).sort((a,b)=>
+    DB.employees[a].name.localeCompare(DB.employees[b].name));
+  if(!empKeys.length){
+    el('emp-benchmarks-list').innerHTML='<div style="font-size:12px;color:var(--ink3);padding:8px 0">No employees tracked yet. Load a payroll week first.</div>';
+    return;
+  }
+  el('emp-benchmarks-list').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 120px 1fr;gap:0;padding:4px 0;margin-bottom:4px;border-bottom:1px solid var(--border)">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em">Employee</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;text-align:right">Expected $/wk</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding-left:12px">Note</span>
+    </div>`+
+  empKeys.map(k=>{
+    const e=DB.employees[k];
+    const bm=e.benchmark||{};
+    return`<div class="srow" style="grid-template-columns:1fr 120px 1fr;gap:6px;align-items:center;padding:6px 0">
+      <div><div class="slbl">${e.name}</div><div class="ssub">${{ops:'Operations',adm:'Admin',trn:'Trainee',unk:'Unassigned'}[e.cat]||'Unassigned'}</div></div>
+      <input type="number" class="sinput" data-emp-key="${k}" data-field="expectedGross" min="0" step="0.01" placeholder="0.00" value="${bm.expectedGross||''}" oninput="updateEmpBenchmark('${k}','expectedGross',this.value)" style="text-align:right">
+      <input type="text" class="sinput" data-emp-key="${k}" data-field="note" placeholder="e.g. Part-time, trainee rate" value="${bm.note||''}" oninput="updateEmpBenchmark('${k}','note',this.value)" style="margin-left:6px">
+    </div>`;
+  }).join('');
+}
+
+function updateEmpBenchmark(empKey, field, value){
+  if(!DB.employees[empKey]) return;
+  if(!DB.employees[empKey].benchmark) DB.employees[empKey].benchmark={};
+  if(field==='expectedGross') DB.employees[empKey].benchmark.expectedGross=parseFloat(value)||0;
+  else DB.employees[empKey].benchmark[field]=value;
+  // Debounced save
+  clearTimeout(window._benchSaveTimer);
+  window._benchSaveTimer=setTimeout(()=>{dbSave();},800);
+}
+
+// Override renderSettingsPage to also render benchmarks
+const _origRenderSettings = renderSettingsPage;
+function renderSettingsPage(){
+  _origRenderSettings();
+  renderEmpBenchmarks();
+}
+
+// ── PRE-HIRE PAGE ────────────────────────────────────────
+function renderPreHirePage(){
+  if(!DB.prehire) DB.prehire=[];
+
+  // Auto-promote any pre-hire trainees who have appeared in payroll
+  let promoted=0;
+  DB.prehire=DB.prehire.filter(ph=>{
+    const k=employeeKey(ph.name);
+    if(DB.employees[k]){
+      // Already in roster — promote them
+      if(!DB.employees[k].hireDate && ph.hireDate) DB.employees[k].hireDate=ph.hireDate;
+      if(!DB.employees[k].notes && ph.notes) DB.employees[k].notes=ph.notes;
+      promoted++;
+      return false; // remove from prehire
+    }
+    return true;
+  });
+  if(promoted){ dbSave(); }
+
+  const list=DB.prehire;
+  el('prehire-count-label').textContent='('+list.length+' pending)';
+  const tbl=el('prehire-table');
+  el('prehire-empty').style.display=list.length?'none':'block';
+
+  if(!list.length){ tbl.innerHTML=''; return; }
+
+  tbl.innerHTML=`<thead><tr>
+    <th>Name</th><th>Hire Date</th><th>Expected Start</th>
+    <th class="r">Expected $/wk</th><th>Notes</th><th>Status</th><th></th>
+  </tr></thead><tbody>`+
+  list.map((ph,i)=>{
+    const today=new Date().toISOString().slice(0,10);
+    const overdue=ph.startDate&&ph.startDate<today;
+    return`<tr>
+      <td style="font-weight:500" class="mono">${ph.name}</td>
+      <td class="mono" style="font-size:11px;color:var(--ink3)">${ph.hireDate||'—'}</td>
+      <td class="mono" style="font-size:11px;color:${overdue?'var(--red)':'var(--ink3)'}">${ph.startDate||'—'}</td>
+      <td class="r mono">${ph.expectedGross>0?fmt(ph.expectedGross):'—'}</td>
+      <td style="font-size:12px;color:var(--ink2)">${ph.notes||'—'}</td>
+      <td>${overdue
+        ?'<span style="background:var(--red-bg);color:var(--red);border-radius:20px;padding:2px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.06em">Overdue</span>'
+        :'<span style="background:var(--amb-bg,#fdf4e3);color:var(--amb,#8a5700);border-radius:20px;padding:2px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.06em">Pending</span>'}</td>
+      <td><button onclick="removePreHire(${i})" style="background:none;border:none;cursor:pointer;color:var(--ink4);font-size:14px;padding:2px 6px" title="Remove">×</button></td>
+    </tr>`;
+  }).join('')+'</tbody>';
+}
+
+function openAddPrehire(){
+  el('ph-name').value=''; el('ph-notes').value='';
+  el('ph-expected-gross').value=''; el('ph-error').style.display='none';
+  el('ph-hire-date').value=new Date().toISOString().slice(0,10);
+  el('ph-start-date').value='';
+  el('modal-prehire').style.display='flex';
+  setTimeout(()=>el('ph-name').focus(),100);
+}
+
+function confirmAddPrehire(){
+  const name=(el('ph-name').value||'').trim();
+  const errEl=el('ph-error');
+  if(!name){errEl.textContent='Name is required.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  if(!DB.prehire) DB.prehire=[];
+  if(DB.prehire.find(p=>p.name.toLowerCase()===name.toLowerCase())){
+    if(!confirm(name+' is already in the pre-hire list. Add anyway?')) return;
+  }
+  DB.prehire.push({
+    name,
+    hireDate:   el('ph-hire-date').value||'',
+    startDate:  el('ph-start-date').value||'',
+    expectedGross: parseFloat(el('ph-expected-gross').value)||0,
+    notes:      el('ph-notes').value.trim(),
+    added:      new Date().toISOString()
+  });
+  dbSave();
+  closeModal('prehire');
+  renderPreHirePage();
+}
+
+function removePreHire(idx){
+  if(!confirm('Remove this pre-hire trainee?')) return;
+  DB.prehire.splice(idx,1);
+  dbSave();
+  renderPreHirePage();
+}
+
+// ── PASTE IMPORT MODE ────────────────────────────────────────
+let impMode = 'file';
+
+function setImpMode(mode){
+  impMode = mode;
+  el('itab-file').classList.toggle('act', mode==='file');
+  el('itab-paste').classList.toggle('act', mode==='paste');
+  el('imp-file-mode').style.display = mode==='file' ? 'block' : 'none';
+  el('imp-paste-mode').style.display = mode==='paste' ? 'block' : 'none';
+  el('imp-ok').style.display = 'none';
+  if(mode==='paste'){
+    const t=el('imp-paste-text');
+    if(t&&t.value.trim()) previewPayrollPaste();
+    setTimeout(()=>{ if(t) t.focus(); }, 80);
+  }
+}
+
+function parsePastedPayroll(raw){
+  // Normalize line endings, split into rows
+  const lines = raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim().split('\n').filter(l=>l.trim());
+  if(!lines.length) return null;
+  // Convert each line into a row array (tab-separated)
+  const rows = lines.map(l => l.split('\t').map(c => c.trim()));
+  return parseRowsToEmployees(rows);
+}
+
+function previewPayrollPaste(){
+  const raw = (el('imp-paste-text').value||'').trim();
+  if(!raw){ el('imp-paste-preview').innerHTML=''; el('imp-ok').style.display='none'; return; }
+  const emps = parsePastedPayroll(raw);
+  if(!emps||!emps.length){
+    el('imp-paste-preview').innerHTML='<span class="paste-err">&#9888; Could not parse. Make sure you copied the full table including the header row (Team member, Gross pay, etc).</span>';
+    el('imp-ok').style.display='none'; return;
+  }
+  const totalGross = emps.reduce((s,e)=>s+e.gross,0);
+  const totalSubtotal = emps.reduce((s,e)=>s+(e.subtotal||e.gross),0);
+  el('imp-paste-preview').innerHTML='<span class="paste-ok">&#10003; '+emps.length+' employees &nbsp;&middot;&nbsp; Subtotal: '+fmt(totalGross)+'</span>';
+  el('imp-ok').style.display='inline-flex';
+  el('imp-ok').textContent='Import '+emps.length+' Employees';
+  // Store as pending
+  pendingImport={emps, filename:'Pasted payroll ('+new Date().toLocaleDateString()+')'};
+}
+
+function closeModal(id){el('modal-'+id).style.display='none';}
+
+// ── EDIT WEEK MODAL ──────────────────────────────────────
+let editPendingCSV = null;
+
+function openEditModal(weekId){
+  if(!weekId || !DB.weeks[weekId]){ alert('No week selected.'); return; }
+  const w = DB.weeks[weekId];
+  editPendingCSV = null;
+
+  el('edit-original-key').value = weekId;
+  el('edit-date').value = weekId;
+  el('edit-rev').value = w.revenue ? w.revenue.toFixed(2) : '';
+  el('edit-modal-sub').textContent = 'Editing week ending ' + weekId + ' · ' + (w.employees||[]).length + ' employees';
+  el('edit-dz-title').textContent = 'Drop new CSV to replace payroll data';
+  el('edit-dz').querySelector('.dz-sub').textContent = 'Leave empty to keep existing ' + (w.employees||[]).length + ' employees';
+  // Use stored expenses if they exist, else fall back to defaults
+  const editExp=w.expenses||{};
+  const de2=getDefaultExpenses();
+  ['supplies','workmansComp','rent','utilities','officeEssentials','misc'].forEach(k=>{
+    const ef=document.getElementById('edit-'+k);
+    if(ef) ef.value=editExp[k]!==undefined&&editExp[k]!==0?editExp[k]:(de2[k]||'');
+  });
+  el('edit-dz').className = 'drop-zone';
+  el('edit-dz').onclick = () => el('edit-file').click();
+  el('edit-preview').innerHTML = '';
+  el('modal-edit').style.display = 'flex';
+  setTimeout(() => el('edit-date').focus(), 100);
+}
+
+function handleEditDrop(e){
+  e.preventDefault(); el('edit-dz').classList.remove('drag');
+  const f = e.dataTransfer.files[0]; if(f) readEditFile(f);
+}
+function handleEditFileInput(inp){ const f=inp.files[0]; if(f) readEditFile(f); inp.value=''; }
+
+function readEditFile(file){
+  el('edit-dz-title').textContent='Reading '+file.name+'...';
+  el('edit-dz').onclick=null;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='xlsx'||ext==='xls'){
+    const r=new FileReader();
+    r.onload=function(ev){
+      try{
+        const rows=xlsxToRows(ev.target.result);
+        const emps=parseRowsToEmployees(rows);
+        if(!emps){el('edit-dz-title').textContent='Could not parse XLSX';editPendingCSV=null;return;}
+        editPendingCSV={emps,filename:file.name};
+        el('edit-dz-title').textContent='&#x2705; '+emps.length+' employees from '+file.name;
+        el('imp-ok') && (el('imp-ok').style.display='inline-flex');
+        _showEditPreview(emps,file.name);
+      }catch(err){el('edit-dz-title').textContent='Error: '+err.message;editPendingCSV=null;}
+    };
+    r.readAsArrayBuffer(file);
+  } else {
+    const r=new FileReader();
+    r.onload=function(ev){
+      const rows=csvToRows(ev.target.result);
+      const emps=parseRowsToEmployees(rows);
+      if(!emps){el('edit-dz-title').textContent='Could not parse file';editPendingCSV=null;return;}
+      editPendingCSV={emps,filename:file.name};
+      _showEditPreview(emps,file.name);
+    };
+    r.readAsText(file);
+  }
+}
+
+function _showEditPreview(emps,filename){
+  const totalGross=emps.reduce((s,e)=>s+e.gross,0);
+  el('edit-dz-title').textContent=emps.length+' employees loaded from '+filename;
+  const cats={ops:0,adm:0,trn:0,unk:0};
+  emps.forEach(e=>{const c=getEmployeeCat(e.name);cats[c]=(cats[c]||0)+1;});
+  el('edit-preview').innerHTML='<div style="background:var(--surface2);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--ink2);margin-top:8px">Gross: $'+totalGross.toLocaleString('en-US',{minimumFractionDigits:2})+' &nbsp; Ops: '+cats.ops+' &nbsp; Admin: '+cats.adm+' &nbsp; Unassigned: '+cats.unk+'</div>';
+}
+
+function processEditCSV(text, filename){
+  const emps = parsePayrollCSV(text);
+  if(!emps){
+    el('edit-dz-title').textContent = 'Could not parse CSV — keeping existing data';
+    editPendingCSV = null; return;
+  }
+  editPendingCSV = {emps, filename};
+  const totalGross = emps.reduce((s,e)=>s+e.gross,0);
+  el('edit-dz-title').textContent = '✅ ' + emps.length + ' employees loaded from ' + filename;
+  el('edit-dz').querySelector('.dz-sub').textContent = 'Will replace existing payroll data on save';
+  const cats={ops:0,adm:0,trn:0,unk:0};
+  emps.forEach(e=>{ const c=getEmployeeCat(e.name); cats[c]=(cats[c]||0)+1; });
+  el('edit-preview').innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;gap:16px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink3)">
+    <span>Total gross: <strong style="color:var(--ink)">${fmt(totalGross)}</strong></span>
+    <span>Ops: <strong style="color:var(--grn)">${cats.ops}</strong></span>
+    <span>Admin: <strong style="color:var(--blu)">${cats.adm}</strong></span>
+    <span>Trainee: <strong style="color:var(--amb)">${cats.trn}</strong></span>
+    <span>Unassigned: <strong style="color:var(--ink3)">${cats.unk}</strong></span>
+  </div>`;
+}
+
+function saveEditEntry(){
+  const originalKey = el('edit-original-key').value;
+  const newDate = el('edit-date').value;
+  const newRev = parseFloat(el('edit-rev').value) || 0;
+
+  if(!newDate){ el('edit-date').style.borderColor='var(--red)'; el('edit-date').focus(); return; }
+
+  const existingWeek = DB.weeks[originalKey];
+  if(!existingWeek){ alert('Week not found.'); return; }
+
+  // Build updated week object
+  const updatedExpenses={
+    supplies:parseFloat(document.getElementById('edit-supplies')?.value)||0,
+    workmansComp:parseFloat(document.getElementById('edit-workmansComp')?.value)||0,
+    liability:parseFloat(document.getElementById('edit-liability')?.value)||0,
+    rent:parseFloat(document.getElementById('edit-rent')?.value)||0,
+    utilities:parseFloat(document.getElementById('edit-utilities')?.value)||0,
+    vehicle:parseFloat(document.getElementById('edit-vehicle')?.value)||0,
+    marketing:parseFloat(document.getElementById('edit-marketing')?.value)||0,
+    software:parseFloat(document.getElementById('edit-software')?.value)||0,
+    recruiting:parseFloat(document.getElementById('edit-recruiting')?.value)||0,
+    professional:parseFloat(document.getElementById('edit-professional')?.value)||0,
+    officeEssentials:parseFloat(document.getElementById('edit-officeEssentials')?.value)||0,
+    misc:parseFloat(document.getElementById('edit-misc')?.value)||0,
+  };
+  const updatedWeek = {
+    ...existingWeek,
+    date: newDate,
+    revenue: newRev,
+    expenses: updatedExpenses,
+  };
+
+  // Replace payroll data if new CSV was loaded
+  if(editPendingCSV){
+    updatedWeek.employees = editPendingCSV.emps;
+    updatedWeek.filename = editPendingCSV.filename;
+    // Register any new employees
+    editPendingCSV.emps.forEach(e=>{
+      const k = employeeKey(e.name);
+      if(!DB.employees[k]) DB.employees[k] = {name:e.name, cat:'unk'};
+    });
+  }
+
+  // If date changed, delete old key and create new one
+  if(newDate !== originalKey){
+    if(DB.weeks[newDate] && newDate !== originalKey){
+      if(!confirm('A week ending ' + newDate + ' already exists. Overwrite it?')) return;
+    }
+    delete DB.weeks[originalKey];
+  }
+
+  DB.weeks[newDate] = updatedWeek;
+  dbSave();
+  closeModal('edit');
+  editPendingCSV = null;
+
+  // Update currentWeekId if it was the edited week
+  if(currentWeekId === originalKey) currentWeekId = newDate;
+
+  // Refresh current view
+  if(currentPage === 'dashboard') renderDashboard();
+  if(currentPage === 'history')   renderHistory();
+}
+
+function deleteWeekEntry(){
+  const weekId = el('edit-original-key').value;
+  if(!weekId) return;
+  if(!confirm('Permanently delete week ending ' + weekId + '? This cannot be undone.')) return;
+  delete DB.weeks[weekId];
+  dbSave();
+  closeModal('edit');
+  if(currentWeekId === weekId) currentWeekId = Object.keys(DB.weeks).sort().reverse()[0] || null;
+  if(currentPage === 'dashboard') renderDashboard();
+  if(currentPage === 'history')   renderHistory();
+}
+
+// ── SEED FIRST WEEK ───────────────────────────────────────
+function seedFirstWeek(){
+  const emps=[
+    {name:"Bautista, Ashly",    gross:869.55, deductions:0,    tips:63.10, reimbursements:33,   taxes:128.56, benefits:0,     net:773.99},
+    {name:"Blanks, Walter",     gross:965.00, deductions:0,    tips:0,     reimbursements:0,    taxes:199.25, benefits:77.20, net:688.55},
+    {name:"Carrasquillo, Orlando",gross:803.81,deductions:0,   tips:31.20, reimbursements:24,   taxes:159.13, benefits:0,     net:668.68},
+    {name:"Chandler, Kyra",     gross:830.98, deductions:0,    tips:0,     reimbursements:36,   taxes:156.76, benefits:66.48, net:643.74},
+    {name:"Davidheiser, SaVaughn",gross:771.05,deductions:0,  tips:64.10, reimbursements:27,   taxes:163.07, benefits:61.68, net:573.30},
+    {name:"Eldredge, Dorothy",  gross:1150.00,deductions:92.97,tips:0,     reimbursements:0,    taxes:220.26, benefits:103.50,net:733.27},
+    {name:"Haile, Kristen",     gross:447.55, deductions:0,    tips:0,     reimbursements:18,   taxes:85.83,  benefits:0,     net:379.72},
+    {name:"Highwater, Toby",    gross:1054.52,deductions:0,    tips:112.40,reimbursements:30,   taxes:202.35, benefits:63.27, net:818.90},
+    {name:"Hill, Victoria",     gross:936.31, deductions:0,    tips:0,     reimbursements:30,   taxes:181.84, benefits:0,     net:784.47},
+    {name:"Hoffman, Angelica",  gross:773.77, deductions:0,    tips:87.90, reimbursements:27,   taxes:143.17, benefits:0,     net:657.60},
+    {name:"Johnson, Zoe",       gross:524.05, deductions:0,    tips:0,     reimbursements:21,   taxes:84.24,  benefits:0,     net:460.81},
+    {name:"Johnston, Heather",  gross:557.15, deductions:38,   tips:32.90, reimbursements:24,   taxes:86.42,  benefits:50.14, net:406.59},
+    {name:"Kanach, Nichole",    gross:676.28, deductions:0,    tips:0,     reimbursements:24,   taxes:119.15, benefits:40.57, net:540.56},
+    {name:"Landis, Jaden",      gross:947.29, deductions:0,    tips:79.75, reimbursements:33,   taxes:175.34, benefits:75.78, net:729.17},
+    {name:"Linsinbigler, Angela",gross:186.30,deductions:0,    tips:0,     reimbursements:0,    taxes:22.96,  benefits:0,     net:163.34},
+    {name:"Mace, Lydia",        gross:923.47, deductions:34.85,tips:69.75, reimbursements:0,    taxes:172.22, benefits:73.88, net:642.52},
+    {name:"Majewski, Miranda",  gross:702.08, deductions:0,    tips:65.60, reimbursements:30,   taxes:126.10, benefits:0,     net:605.98},
+    {name:"McKernan, Rachel",   gross:779.84, deductions:0,    tips:87.90, reimbursements:30,   taxes:144.61, benefits:0,     net:665.23},
+    {name:"McVey, Tatiana",     gross:717.18, deductions:0,    tips:64.84, reimbursements:21,   taxes:129.69, benefits:0,     net:608.49},
+    {name:"Moffett, Samantha",  gross:821.61, deductions:0,    tips:35,    reimbursements:33,   taxes:149.62, benefits:41.08, net:663.91},
+    {name:"Nuse, Mia",          gross:834.05, deductions:0,    tips:20,    reimbursements:30,   taxes:149.48, benefits:66.72, net:647.85},
+    {name:"Pinili, Kaiser",     gross:698.55, deductions:0,    tips:0,     reimbursements:30,   taxes:127.02, benefits:0,     net:601.53},
+    {name:"Santos, Marion",     gross:708.64, deductions:0,    tips:0,     reimbursements:27,   taxes:125.13, benefits:21.26, net:589.25},
+    {name:"Torress Marrero, Jannellie",gross:1013.38,deductions:68.54,tips:28.84,reimbursements:21,taxes:159.91,benefits:0,  net:805.93},
+    {name:"Verhaaren, Alyson",  gross:880.00, deductions:0,    tips:0,     reimbursements:35,   taxes:159.99, benefits:70.40, net:684.61},
+  ];
+  DB.weeks['2025-04-24']={date:'2025-04-24',revenue:0,employees:emps,filename:'week_ending_4-24.csv',imported:new Date().toISOString()};
+  emps.forEach(e=>{
+    const k=employeeKey(e.name);
+    if(!DB.employees[k]) DB.employees[k]={name:e.name,cat:'unk'};
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+const DEFAULT_SETTINGS={total:55,warn:65,ops:40,adm:12,trn:5,
+  defExpenses:{supplies:150,workmansComp:250,liability:115,rent:385,utilities:75,vehicle:200,marketing:575,software:100,recruiting:75,professional:96,officeEssentials:58,misc:75},
+  expBenchmarks:{supplies:4.0,workmansComp:3.5,liability:3.0,rent:1.5,utilities:1.0,vehicle:5.0,marketing:5.0,software:1.5,recruiting:2.0,professional:2.0,officeEssentials:1.5,misc:1.0}};
+const stored=dbLoad();
+let DB;
+
+if(stored && stored.weeks){
+  DB=stored;
+  if(!DB.settings) DB.settings={...DEFAULT_SETTINGS};
+  if(!DB.employees) DB.employees={};
+  if(!DB.prehire) DB.prehire=[];
+  // Fill in missing settings
+  Object.keys(DEFAULT_SETTINGS).forEach(k=>{ if(DB.settings[k]===undefined) DB.settings[k]=DEFAULT_SETTINGS[k]; });
+  if(!DB.settings.defExpenses) DB.settings.defExpenses={...DEFAULT_SETTINGS.defExpenses};
+  if(!DB.settings.expBenchmarks) DB.settings.expBenchmarks={...DEFAULT_SETTINGS.expBenchmarks};
+  // Migrate new keys into existing defExpenses
+  Object.keys(DEFAULT_SETTINGS.defExpenses).forEach(k=>{
+    if(DB.settings.defExpenses[k]===undefined) DB.settings.defExpenses[k]=DEFAULT_SETTINGS.defExpenses[k];
+  });
+} else {
+  DB={weeks:{},employees:{},settings:{...DEFAULT_SETTINGS}};
+  seedFirstWeek();
+  dbSave();
+}
+
+currentWeekId=Object.keys(DB.weeks).sort().reverse()[0]||null;
+renderDashboard();
+</script>
+
+<!-- ══ ADD PRE-HIRE MODAL ══ -->
+<div id="modal-prehire" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('prehire')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div><h2>Add Pre-hire Trainee</h2><div class="msub">Add a trainee who has been hired but not yet run payroll.</div></div>
+      <button class="modal-close" onclick="closeModal('prehire')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field"><label>Full Name *</label><input type="text" id="ph-name" placeholder="Last, First" autocomplete="off"></div>
+        <div class="field"><label>Hire Date</label><input type="date" id="ph-hire-date"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Expected Start Date</label><input type="date" id="ph-start-date"></div>
+        <div class="field"><label>Expected Gross / Week ($)</label><input type="number" id="ph-expected-gross" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="ph-notes" rows="2" placeholder="Training schedule, start date, notes…" style="resize:vertical"></textarea></div>
+      <div id="ph-error" style="display:none;background:var(--red-bg,#fdf0ee);border:1px solid rgba(176,42,42,.3);border-radius:4px;padding:8px 12px;font-size:12px;color:var(--red);margin-top:4px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('prehire')">Cancel</button>
+      <button class="btn pri" onclick="confirmAddPrehire()">Add Trainee</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EDIT WEEK MODAL ══ -->
+<div id="modal-edit" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('edit')">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Edit Week Entry</h2>
+        <div class="msub" id="edit-modal-sub">Modify the date, revenue, or replace the payroll data.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('edit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-original-key">
+      <div class="form-row" style="margin-bottom:1rem">
+        <div class="field">
+          <label>Week Ending Date</label>
+          <input type="date" id="edit-date">
+        </div>
+        <div class="field">
+          <label>Total Revenue ($)</label>
+          <input type="number" id="edit-rev" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Replace Payroll CSV (optional)</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;margin-top:4px">Business Expenses</div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Supplies ($)</label><input type="number" id="edit-supplies" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Workman's Comp ($)</label><input type="number" id="edit-workmansComp" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>General Liability Ins. ($)</label><input type="number" id="edit-liability" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Rent ($)</label><input type="number" id="edit-rent" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Utilities ($)</label><input type="number" id="edit-utilities" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Vehicle / Fuel / Mileage ($)</label><input type="number" id="edit-vehicle" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Marketing & Advertising ($)</label><input type="number" id="edit-marketing" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Software & Subscriptions ($)</label><input type="number" id="edit-software" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Recruiting & Hiring ($)</label><input type="number" id="edit-recruiting" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Professional Services ($)</label><input type="number" id="edit-professional" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:6px">
+        <div class="field" style="margin-bottom:0"><label>Office & Administrative ($)</label><input type="number" id="edit-officeEssentials" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="field" style="margin-bottom:0"><label>Misc ($)</label><input type="number" id="edit-misc" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+
+      <div class="drop-zone" id="edit-dz"
+        onclick="document.getElementById('edit-file').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="handleEditDrop(event)">
+        <div class="dz-icon">📄</div>
+        <div class="dz-title" id="edit-dz-title">Drop new CSV to replace payroll data</div>
+        <div class="dz-sub">Leave empty to keep existing payroll data</div>
+      </div>
+      <input type="file" id="edit-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleEditFileInput(this)">
+      <div id="edit-preview" style="margin-top:10px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" style="color:var(--red);border-color:rgba(176,42,42,.3);margin-right:auto" onclick="deleteWeekEntry()">Delete this week</button>
+      <button class="btn" onclick="closeModal('edit')">Cancel</button>
+      <button class="btn pri" onclick="saveEditEntry()">Save Changes</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

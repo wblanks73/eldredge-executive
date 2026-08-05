@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eldredge — Executive Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0c0c0e;color:#edeae4;font-family:"DM Mono",monospace;min-height:100vh;padding:3rem 2rem 6rem;max-width:900px;margin:0 auto}
+.logo{font-family:"Fraunces",serif;font-size:38px;font-weight:300;letter-spacing:-.02em}
+.logo span{font-style:italic;color:#f5a623}
+.sub{font-size:10px;color:#5c5968;letter-spacing:.14em;text-transform:uppercase;margin-top:4px;margin-bottom:.5rem}
+.subtitle{font-size:13px;color:#9996a0;margin-bottom:3rem;line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{display:block;background:#141417;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1.4rem 1.5rem 1.1rem;text-decoration:none;color:inherit;transition:all .2s;position:relative}
+.card:hover{border-color:rgba(255,255,255,.15);background:#1c1c21;transform:translateY(-2px)}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:#f5a623;border-radius:12px 12px 0 0}
+.icon{font-size:24px;display:block;margin-bottom:.6rem}
+.title{font-family:"Fraunces",serif;font-size:17px;font-weight:300;margin-bottom:.3rem}
+.desc{font-size:10px;color:#9996a0;line-height:1.7}
+.arrow{position:absolute;bottom:1.1rem;right:1.25rem;color:#3a3845;font-size:15px;transition:all .2s}
+.card:hover .arrow{color:#edeae4;transform:translateX(3px)}
+.note{margin-top:2.5rem;font-size:10px;color:#3a3845;line-height:1.9;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.05)}
+</style>
+</head>
+<body>
+<div class="logo">Eldredge <span>Cleaning</span></div>
+<div class="sub">Business Intelligence · Executive Suite</div>
+<div class="subtitle">Royersford, PA &nbsp;·&nbsp; Internal use only</div>
+<div class="grid">
+  <a class="card" href="eldredge_cashflow.html">
+    <span class="icon">💰</span>
+    <div class="title">Weekly Cash Flow</div>
+    <div class="desc">Revenue vs payroll vs expenses — week by week</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="card" href="eldredge_payroll_tracker.html">
+    <span class="icon">👥</span>
+    <div class="title">Payroll Tracker</div>
+    <div class="desc">Gusto payroll, bonuses, expense tracking</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="card" href="eldredge_payment_hub.html">
+    <span class="icon">⇌</span>
+    <div class="title">QB · MC Reconciliation</div>
+    <div class="desc">QuickBooks vs MaidCentral bookkeeping</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="card" href="eldredge_cleaning_financials.html">
+    <span class="icon">🏦</span>
+    <div class="title">Financial Intelligence</div>
+    <div class="desc">Bank statements, categories, cash flow</div>
+    <span class="arrow">→</span>
+  </a>
+</div>
+<div class="note">
+  Data is stored in your browser only — nothing leaves your computer.<br>
+  Export to Excel before clearing browser data or switching devices.
+</div>
+</body>
+</html>

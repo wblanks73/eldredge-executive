@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eldredge — QB · MC Reconciliation</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1eb;--card:#fff;--ink:#0f0f0f;--ink2:#444;--ink3:#888;--ink4:#bbb;
+  --border:#e2ddd5;--border2:#ccc;
+  --grn:#1a6b3a;--grn-bg:#e8f5ed;
+  --red:#c0392b;--red-bg:#fdf0ee;
+  --gold:#b8860b;--gold-bg:#fdf6e3;
+  --blue:#1a3a6b;--blue-bg:#edf2fb;
+  --amber:#8a5700;--amber-bg:#fdf4e3;
+  --purple:#5a2d82;--purple-bg:#f4eeff;
+  --teal:#0d6b5e;--teal-bg:#e6f5f3;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;min-height:100vh}
+/* HEADER */
+.hdr{background:#0f0f0f;border-bottom:3px solid var(--gold);display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;position:sticky;top:0;z-index:100}
+.hdr-brand{padding:.9rem 1.75rem;border-right:1px solid rgba(255,255,255,.08)}
+.brand{font-family:'Bebas Neue',display;font-size:24px;color:#fff;letter-spacing:.06em;line-height:1}
+.brand span{color:var(--gold)}
+.brand-sub{font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.3);letter-spacing:.18em;text-transform:uppercase;margin-top:2px}
+.hdr-tabs{padding:0 1rem;display:flex;align-items:flex-end;gap:1px;overflow-x:auto;scrollbar-width:none}
+.hdr-tabs::-webkit-scrollbar{display:none}
+.htab{padding:8px 14px;border:none;border-bottom:3px solid transparent;background:none;color:rgba(255,255,255,.4);font-family:var(--mono);font-size:10px;letter-spacing:.07em;cursor:pointer;transition:all .15s;text-transform:uppercase;margin-bottom:-3px;white-space:nowrap}
+.htab:hover{color:rgba(255,255,255,.75)}.htab.act{color:#fff;border-bottom-color:var(--gold)}
+.hdr-act{padding:.9rem 1.25rem;display:flex;align-items:center;gap:7px;border-left:1px solid rgba(255,255,255,.08)}
+.hbtn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:4px;border:1px solid rgba(255,255,255,.18);background:none;color:rgba(255,255,255,.6);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s;text-transform:uppercase;white-space:nowrap}
+.hbtn:hover{border-color:rgba(255,255,255,.5);color:#fff}
+.hbtn.gold{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:600}
+.hbtn.red{border-color:rgba(192,57,43,.4);color:#f16b6b}
+/* LAYOUT */
+.main{padding:1.5rem 2rem;max-width:1500px;margin:0 auto}
+.page{display:none}.page.act{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin-bottom:12px}
+.card-np{background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:12px;overflow:hidden}
+.ct{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:.9rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+/* KPI */
+.krow{display:grid;gap:10px;margin-bottom:14px}
+.k4{grid-template-columns:repeat(4,1fr)}.k5{grid-template-columns:repeat(5,1fr)}.k6{grid-template-columns:repeat(6,1fr)}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:.9rem 1.1rem;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.k-grn::before{background:var(--grn)}.k-red::before{background:var(--red)}.k-blue::before{background:var(--blue)}
+.k-amber::before{background:var(--amber)}.k-gold::before{background:var(--gold)}.k-teal::before{background:var(--teal)}
+.k-purple::before{background:var(--purple)}.k-ink::before{background:#0f0f0f}
+.kl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.kv{font-family:var(--mono);font-size:18px;font-weight:500;line-height:1.1}
+.ks{font-size:11px;color:var(--ink3);margin-top:3px;font-family:var(--mono)}
+/* PILLS */
+.pill{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.p-ok{background:var(--grn-bg);color:var(--grn)}.p-out{background:var(--red-bg);color:var(--red)}
+.p-part{background:var(--gold-bg);color:var(--gold)}.p-mc{background:var(--amber-bg);color:var(--amber)}
+.p-dep{background:var(--teal-bg);color:var(--teal)}.p-dir{background:var(--blue-bg);color:var(--blue)}
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;padding:7px 10px;text-align:left;border-bottom:2px solid var(--border);font-weight:400;white-space:nowrap}
+thead th.r{text-align:right}
+tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,0,0,.012)}
+.mono{font-family:var(--mono)}.r{text-align:right}
+.tw{overflow-x:auto}
+.no-data{text-align:center;padding:2.5rem;color:var(--ink3);font-size:12px;font-family:var(--mono)}
+/* FILTER BAR */
+.fbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.fbar input,.fbar select{background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:var(--mono);font-size:11px;padding:5px 9px;outline:none}
+.fbar input{min-width:160px}
+.fc{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+/* PAGINATION */
+.pag{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:1px solid var(--border);background:var(--bg)}
+.pag span{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.pbtn{background:var(--card);border:1px solid var(--border2);border-radius:4px;padding:3px 11px;cursor:pointer;font-family:var(--mono);font-size:10px;color:var(--ink2)}
+.pbtn:hover{border-color:var(--ink)}.pbtn:disabled{opacity:.35;cursor:default}
+/* DATE BAR */
+.date-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;padding:.75rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:6px;flex-wrap:wrap}
+.date-bar input[type=date]{background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:var(--mono);font-size:11px;padding:4px 8px;outline:none}
+.dbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase}
+.dpbtn{background:none;border:1px solid var(--border2);border-radius:4px;padding:3px 9px;cursor:pointer;font-family:var(--mono);font-size:9px;color:var(--ink3);transition:all .15s;white-space:nowrap}
+.dpbtn:hover{border-color:var(--ink2);color:var(--ink)}
+/* SUB TABS */
+.stabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.stab{padding:5px 13px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--ink3);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s}
+.stab:hover{border-color:var(--ink2);color:var(--ink2)}.stab.act{background:var(--ink);border-color:var(--ink);color:#fff}
+/* MODAL */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px)}
+.modal{background:var(--card);border-radius:8px;width:min(700px,96vw);max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.mhdr{padding:1.25rem 1.5rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.mhdr h2{font-family:'Bebas Neue',display;font-size:22px;letter-spacing:.04em;line-height:1}
+.mhdr p{font-size:12px;color:var(--ink3);margin-top:3px;line-height:1.6}
+.mx{background:none;border:none;color:var(--ink3);font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;line-height:1}
+.mbody{padding:1.25rem 1.5rem}.mfoot{padding:.9rem 1.5rem 1.25rem;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border)}
+.field{margin-bottom:.85rem}
+.field label{display:block;font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:var(--mono);font-size:12px;padding:7px 10px;outline:none}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:4px;border:1px solid var(--border2);background:none;color:var(--ink2);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s}
+.btn:hover{border-color:var(--ink)}
+.btn.pri{background:#0f0f0f;border-color:#0f0f0f;color:#fff}
+/* LOAD INPUT */
+.src-block{border:1px solid var(--border);border-radius:6px;padding:1rem;background:var(--bg)}
+.src-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block}
+.mode-tabs{display:flex;gap:3px;margin-bottom:8px}
+.mode-tab{padding:3px 11px;border-radius:4px;border:1px solid var(--border2);background:none;color:var(--ink3);font-family:var(--mono);font-size:9px;cursor:pointer;transition:all .15s}
+.mode-tab.act{background:var(--ink);border-color:var(--ink);color:#fff}
+.dz{border:2px dashed var(--border2);border-radius:5px;padding:1.2rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--card)}
+.dz:hover,.dz.drag{border-color:var(--ink);background:#eceae4}
+.dz-icon{font-size:20px;margin-bottom:3px}.dz-title{font-size:12px;font-weight:600}.dz-sub{font-size:9px;color:var(--ink3);margin-top:1px}
+.paste-area{width:100%;min-height:130px;background:var(--card);border:1.5px solid var(--border2);border-radius:5px;color:var(--ink);font-family:var(--mono);font-size:10px;padding:10px;outline:none;resize:vertical;line-height:1.7}
+.paste-area:focus{border-color:var(--ink)}
+.parse-ok{color:var(--grn);font-family:var(--mono);font-size:10px;margin-top:5px}
+.parse-err{color:var(--red);font-family:var(--mono);font-size:10px;margin-top:5px}
+/* RECON BALANCE CARD */
+.bal-card{background:var(--card);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.bal-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+.bal-cell{padding:1rem 1.25rem;border-right:1px solid var(--border)}
+.bal-cell:last-child{border-right:none}
+.bal-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.bal-val{font-family:var(--mono);font-size:22px;font-weight:600;line-height:1}
+.bal-sub{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:4px}
+.bal-items{padding:.75rem 1.25rem}
+.bal-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.bal-row:last-child{border-bottom:none}
+/* INFO BANNERS */
+.info{border-radius:5px;padding:9px 13px;font-size:12px;line-height:1.6;margin-bottom:12px}
+.info-blue{background:var(--blue-bg);border:1px solid rgba(26,58,107,.2);color:var(--blue)}
+.info-amber{background:var(--amber-bg);border:1px solid rgba(138,87,0,.2);color:var(--amber)}
+.info-red{background:var(--red-bg);border:1px solid rgba(192,57,43,.2);color:var(--red)}
+.info-grn{background:var(--grn-bg);border:1px solid rgba(26,107,58,.2);color:var(--grn)}
+/* NOTE TAG */
+.note-tag{display:inline-block;padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:8px;background:var(--gold-bg);color:var(--gold);font-weight:600;margin-left:4px}
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;gap:12px}
+.empty-icon{font-size:52px;opacity:.15}
+.empty-title{font-family:'Bebas Neue',display;font-size:38px;letter-spacing:.04em;color:var(--ink3)}
+.empty-sub{font-size:13px;color:var(--ink3);max-width:380px;line-height:1.8}
+/* DIFF SECTIONS */
+.diff-section{background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:12px;overflow:hidden}
+.diff-hdr{padding:.8rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.diff-label{font-family:var(--mono);font-size:10px;font-weight:600}
+.diff-meta{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.diff-total{font-family:var(--mono);font-size:13px;font-weight:600}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@media(max-width:1100px){.k4,.k5,.k6{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.bal-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="brand">Eldredge <span>Cleaning</span></div>
+    <div class="brand-sub">QB · MC Reconciliation</div>
+  </div>
+  <div class="hdr-tabs">
+    <button class="htab act" id="htab-recon" onclick="showTab('recon',this)">&#9868; Reconcile</button>
+    <button class="htab" id="htab-qb" onclick="showTab('qb',this)">&#128196; QuickBooks</button>
+    <button class="htab" id="htab-mc" onclick="showTab('mc',this)">&#128203; MaidCentral</button>
+    <button class="htab" id="htab-history" onclick="showTab('history',this)">&#9776; History</button>
+  </div>
+  <div class="hdr-act"><div id="storage-meter" style="margin-right:4px"></div>
+    <button class="hbtn" onclick="exportExcel()">&#8595; Export</button>
+    <button class="hbtn red" onclick="clearAll()">&#128465; Clear</button>
+    <button class="hbtn gold" onclick="openLoad()">&#43; Load Data</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <div id="empty-state" class="empty">
+    <div class="empty-icon">&#9868;</div>
+    <div class="empty-title">No data loaded</div>
+    <div class="empty-sub">Click <strong>+ Load Data</strong> to import QuickBooks and MaidCentral data — CSV file or paste directly. Load either or both sources.</div>
+    <button class="btn pri" onclick="openLoad()" style="margin-top:8px">&#43; Load Data</button>
+  </div>
+
+  <div id="main-content" style="display:none">
+
+    <!-- Date filter bar -->
+    <div class="date-bar">
+      <span class="dbl">From</span>
+      <input type="date" id="df-from" onchange="renderAll()">
+      <span style="color:var(--ink3);font-family:var(--mono);font-size:10px">→</span>
+      <input type="date" id="df-to" onchange="renderAll()">
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="dpbtn" onclick="setPreset('all')">All</button>
+        <button class="dpbtn" onclick="setPreset('7d')">7 days</button>
+        <button class="dpbtn" onclick="setPreset('30d')">30 days</button>
+        <button class="dpbtn" onclick="setPreset('mtd')">This month</button>
+        <button class="dpbtn" onclick="setPreset('lm')">Last month</button>
+        <button class="dpbtn" onclick="setPreset('qtd')">This quarter</button>
+        <button class="dpbtn" onclick="setPreset('ytd')">YTD</button>
+        <select id="mo-pick" onchange="if(this.value)setPreset('month',this.value)" style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:var(--mono);font-size:9px;padding:3px 6px;outline:none"><option value="">Month...</option></select>
+      </div>
+      <span id="date-lbl" style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-left:4px"></span>
+      <span id="hdr-info" style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-left:auto"></span>
+    </div>
+
+    <!-- ═══ RECONCILE TAB ═══ -->
+    <div class="page act" id="tab-recon">
+
+      <!-- Balance summary card -->
+      <div class="bal-card" id="bal-card">
+        <div style="padding:2rem;text-align:center;color:var(--ink3);font-family:var(--mono);font-size:11px">Load data to see reconciliation</div>
+      </div>
+
+      <!-- Difference sub-tabs -->
+      <div class="stabs">
+        <button class="stab act" id="st-diff" onclick="setRecTab('diff',this)">&#9651; Differences</button>
+        <button class="stab" id="st-matched" onclick="setRecTab('matched',this)">&#10003; Matched</button>
+        <button class="stab" id="st-outstanding" onclick="setRecTab('outstanding',this)">&#9888; Outstanding</button>
+        <button class="stab" id="st-qbonly" onclick="setRecTab('qbonly',this)">QB Only</button>
+        <button class="stab" id="st-mconly" onclick="setRecTab('mconly',this)">MC Only</button>
+        <button class="stab" id="st-direct" onclick="setRecTab('direct',this)">&#8594; Direct Pay</button>
+      </div>
+      <div class="fbar">
+        <input type="text" id="rc-search" placeholder="Search client or invoice #..." oninput="renderRecPanel()">
+        <span id="rc-count" class="fc"></span>
+      </div>
+      <div id="rc-panel"></div>
+    </div>
+
+    <!-- ═══ QUICKBOOKS TAB ═══ -->
+    <div class="page" id="tab-qb">
+      <div class="krow k5" id="qb-kpis"></div>
+      <div class="stabs">
+        <button class="stab act" id="qbt-inv" onclick="setQBTab('inv',this)">&#128196; Invoices</button>
+        <button class="stab" id="qbt-pay" onclick="setQBTab('pay',this)">&#10003; Payments</button>
+        <button class="stab" id="qbt-exp" onclick="setQBTab('exp',this)">&#8595; Expenses</button>
+        <button class="stab" id="qbt-dep" onclick="setQBTab('dep',this)">&#10133; Deposits</button>
+        <button class="stab" id="qbt-all" onclick="setQBTab('all',this)">&#9776; All</button>
+      </div>
+      <div class="fbar">
+        <input type="text" id="qb-search" placeholder="Search client, description..." oninput="renderQBTable()">
+        <select id="qb-filter" onchange="renderQBTable()">
+          <option value="">All invoices</option>
+          <option value="outstanding">Outstanding only</option>
+          <option value="paid">Paid only</option>
+        </select>
+        <span id="qb-count" class="fc"></span>
+      </div>
+      <div class="card-np">
+        <div class="tw"><table id="qb-tbl"></table></div>
+        <div class="pag"><span id="qb-pi"></span><div style="display:flex;gap:5px"><button class="pbtn" id="qb-prev" onclick="qbPg(-1)">&#8592;</button><button class="pbtn" id="qb-next" onclick="qbPg(1)">&#8594;</button></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ MAIDCENTRAL TAB ═══ -->
+    <div class="page" id="tab-mc">
+      <div class="krow k5" id="mc-kpis"></div>
+      <div id="mc-banner" class="info info-blue" style="display:none"></div>
+      <div class="fbar">
+        <input type="text" id="mc-search" placeholder="Search client or invoice ID..." oninput="renderMCTable()">
+        <select id="mc-filter" onchange="renderMCTable()">
+          <option value="">All records</option>
+          <option value="paid">Paid</option>
+          <option value="outstanding">Outstanding</option>
+        </select>
+        <span id="mc-count" class="fc"></span>
+      </div>
+      <div class="card-np">
+        <div class="tw"><table id="mc-tbl"></table></div>
+        <div class="pag"><span id="mc-pi"></span><div style="display:flex;gap:5px"><button class="pbtn" onclick="mcPg(-1)">&#8592;</button><button class="pbtn" onclick="mcPg(1)">&#8594;</button></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ HISTORY TAB ═══ -->
+    <div class="page" id="tab-history">
+      <div id="hist-list"></div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /main -->
+
+<!-- ══ LOAD MODAL ══ -->
+<div id="modal-load" class="mbg" style="display:none" onclick="if(event.target===this)closeModal('load')">
+  <div class="modal">
+    <div class="mhdr">
+      <div><h2>Load Data</h2><p>Upload a CSV file or paste data from QuickBooks and MaidCentral.<br>Load either or both — at least one source required.</p></div>
+      <button class="mx" onclick="closeModal('load')">&#10005;</button>
+    </div>
+    <div class="mbody">
+      <div class="frow" style="margin-bottom:.9rem">
+        <div class="field" style="margin-bottom:0"><label>Period Label *</label><input type="text" id="ld-label" placeholder="e.g. June 2026 or YTD 2026"></div>
+        <div class="field" style="margin-bottom:0"><label>Notes (optional)</label><input type="text" id="ld-notes" placeholder="e.g. Week ending 6/28"></div>
+      </div>
+      <!-- Date range filter -->
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:.85rem 1rem;margin-bottom:1rem">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Import date range <span style="font-weight:400;letter-spacing:0;text-transform:none">(optional — blank = all data)</span></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px">
+          <span class="dbl">From</span>
+          <input type="date" id="ld-from" oninput="updLdInfo()" style="background:var(--card);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:var(--mono);font-size:11px;padding:4px 8px;outline:none">
+          <span style="color:var(--ink3);font-family:var(--mono);font-size:10px">→</span>
+          <input type="date" id="ld-to" oninput="updLdInfo()" style="background:var(--card);border:1px solid var(--border2);border-radius:4px;color:var(--ink);font-family:var(--mono);font-size:11px;padding:4px 8px;outline:none">
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="dpbtn" onclick="setLdPre('7d')">7 days</button>
+          <button class="dpbtn" onclick="setLdPre('30d')">30 days</button>
+          <button class="dpbtn" onclick="setLdPre('mtd')">This month</button>
+          <button class="dpbtn" onclick="setLdPre('lm')">Last month</button>
+          <button class="dpbtn" onclick="setLdPre('ytd')">Full YTD</button>
+          <button class="dpbtn" onclick="setLdPre('all')">All data</button>
+        </div>
+        <div id="ld-info" style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px">All transactions will be imported.</div>
+      </div>
+      <!-- Sources -->
+      <div class="g2" style="gap:14px">
+        <div class="src-block">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;gap:5px"><span class="src-dot" style="background:var(--grn)"></span>QuickBooks</div>
+          <div class="mode-tabs">
+            <button class="mode-tab act" id="qb-mt-file" onclick="setSrcMode('qb','file')">&#128196; File</button>
+            <button class="mode-tab" id="qb-mt-paste" onclick="setSrcMode('qb','paste')">&#128203; Paste</button>
+          </div>
+          <div id="qb-file-zone">
+            <div class="dz" id="qb-dz" onclick="G.el('qb-fi').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event,'qb')">
+              <div class="dz-icon">&#128196;</div><div class="dz-title">Drop QB CSV here</div><div class="dz-sub">AR Invoice List or Account Register / Ledger</div>
+            </div>
+            <input type="file" id="qb-fi" accept=".csv,.txt" style="display:none" onchange="handleFile(this,'qb')">
+          </div>
+          <div id="qb-paste-zone" style="display:none">
+            <textarea class="paste-area" id="qb-paste" placeholder="Paste QuickBooks export data here..."></textarea>
+          </div>
+          <div id="qb-result" style="margin-top:6px;min-height:18px"></div>
+        </div>
+        <div class="src-block">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;gap:5px"><span class="src-dot" style="background:var(--amber)"></span>MaidCentral</div>
+          <div class="mode-tabs">
+            <button class="mode-tab act" id="mc-mt-file" onclick="setSrcMode('mc','file')">&#128196; File</button>
+            <button class="mode-tab" id="mc-mt-paste" onclick="setSrcMode('mc','paste')">&#128203; Paste</button>
+          </div>
+          <div id="mc-file-zone">
+            <div class="dz" id="mc-dz" onclick="G.el('mc-fi').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event,'mc')">
+              <div class="dz-icon">&#128203;</div><div class="dz-title">Drop MC CSV here</div><div class="dz-sub">AR/Billing or Payments report</div>
+            </div>
+            <input type="file" id="mc-fi" accept=".csv,.txt" style="display:none" onchange="handleFile(this,'mc')">
+          </div>
+          <div id="mc-paste-zone" style="display:none">
+            <textarea class="paste-area" id="mc-paste" placeholder="Paste MaidCentral export data here..."></textarea>
+          </div>
+          <div id="mc-result" style="margin-top:6px;min-height:18px"></div>
+        </div>
+      </div>
+      <div id="ld-err" style="display:none;background:var(--red-bg);border:1px solid rgba(192,57,43,.3);border-radius:4px;padding:8px 12px;font-size:11px;color:var(--red);margin-top:10px"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeModal('load')">Cancel</button>
+      <button class="btn pri" onclick="confirmLoad()">Load &amp; 
+// ══════════════════════════════════════════════════════════════
+// ALL FUNCTIONS BEFORE INIT
+// ══════════════════════════════════════════════════════════════
+const STORE = 'eldredge_qbmc_v2';
+const PG = 200;
+
+// Namespace to avoid any global conflicts
+const G = {
+  el: id => document.getElementById(id),
+  fmt: n => '$' + Math.abs(+n || 0).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}),
+  fmtK: n => { const v = Math.abs(+n||0); return '$' + (v >= 1000 ? (v/1000).toFixed(1) + 'k' : v.toFixed(2)); },
+  pf: n => (+n||0).toFixed(1) + '%',
+  pct: (a,b) => b > 0 ? a/b*100 : 0,
+  pm: v => { try { return parseFloat(String(v||'').replace(/[$,\s"]/g,'')) || 0; } catch(e) { return 0; } },
+};
+const {el,fmt,fmtK,pf,pct,pm} = G;
+
+// ── DB ─────────────────────────────────────────────────────
+
+function dbSave() {
+  try {
+    // Strip raw import data before saving — only the reconciliation output is needed for display.
+    // qbRaw and mcRaw are rebuilt-on-demand at import time; storing them eats 70% of the budget.
+    const lean = { ...DB, datasets: {} };
+    Object.entries(DB.datasets||{}).forEach(([k,ds]) => {
+      lean.datasets[k] = {
+        label:          ds.label,
+        notes:          ds.notes||'',
+        imported:       ds.imported,
+        qbFile:         ds.qbFile||'',
+        mcFile:         ds.mcFile||'',
+        reconciliation: ds.reconciliation,
+        // Store a compact summary of raw data for the QB/MC tabs (dates + totals only)
+        qbSummary: ds.qbRaw ? {
+          format:       ds.qbRaw.format,
+          totInvoiced:  ds.qbRaw.totInvoiced,
+          totCollected: ds.qbRaw.totCollected,
+          totOpen:      ds.qbRaw.totOpen||0,
+          invCount:     ds.qbRaw.invoices.length,
+          accounts:     ds.qbRaw.accounts,
+        } : null,
+        mcSummary: ds.mcRaw ? {
+          format:      ds.mcRaw.format,
+          totalBilled: ds.mcRaw.totalBilled,
+          totalCollected: ds.mcRaw.totalCollected,
+          outstanding: ds.mcRaw.outstanding,
+          count:       ds.mcRaw.count,
+        } : null,
+      };
+    });
+    const payload = JSON.stringify(lean);
+    localStorage.setItem(STORE, payload);
+    updStorageMeter(payload.length);
+  } catch(e) {
+    alert('Storage full — try deleting old datasets from the History tab, or export your data first.');
+  }
+}
+
+function dbLoad() {
+  try { return JSON.parse(localStorage.getItem(STORE)) || null; } catch(e) { return null; }
+}
+
+function updStorageMeter(byteLen) {
+  const kb = byteLen ? byteLen / 1024 : 0;
+  const m = document.getElementById('storage-meter');
+  if (!m) return;
+  const pct = Math.min(100, kb / 5120 * 100);
+  const col = pct > 80 ? 'var(--red)' : pct > 60 ? 'var(--gold)' : 'var(--grn)';
+  m.innerHTML = `<div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9px;color:var(--ink3)">
+    <div style="width:60px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+      <div style="width:${pct.toFixed(1)}%;height:100%;background:${col};border-radius:2px"></div>
+    </div>
+    ${kb.toFixed(0)} KB / 5 MB
+  </div>`;
+}
+
+// ── DATE HELPERS ────────────────────────────────────────────
+function normDate(s) {
+  if (!s) return '';
+  s = String(s).trim().split(' ')[0];
+  const m1 = s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
+  if (m1) { const ms={jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'}; return m1[3]+'-'+(ms[m1[2].toLowerCase()]||'01')+'-'+m1[1].padStart(2,'0'); }
+  const m2 = s.split('/');
+  if (m2.length === 3 && m2[2].length === 4) return m2[2]+'-'+m2[0].padStart(2,'0')+'-'+m2[1].padStart(2,'0');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return '';
+}
+
+function presetRange(p, val) {
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  const iso = dt => dt.toISOString().slice(0,10);
+  if (p==='all')  return {f:'',t:''};
+  if (p==='7d')   return {f:iso(new Date(y,m,d-6)),t:iso(now)};
+  if (p==='30d')  return {f:iso(new Date(y,m,d-29)),t:iso(now)};
+  if (p==='mtd')  return {f:iso(new Date(y,m,1)),t:iso(now)};
+  if (p==='lm')   { const f=new Date(y,m-1,1),t=new Date(y,m,0); return {f:iso(f),t:iso(t)}; }
+  if (p==='qtd')  { const q=Math.floor(m/3); return {f:iso(new Date(y,q*3,1)),t:iso(now)}; }
+  if (p==='ytd')  return {f:iso(new Date(y,0,1)),t:iso(now)};
+  if (p==='month' && val) { const [py,pm]=val.split('-').map(Number); return {f:iso(new Date(py,pm-1,1)),t:iso(new Date(py,pm,0))}; }
+  return {f:'',t:''};
+}
+
+function setPreset(p, val) {
+  const {f,t} = presetRange(p, val);
+  el('df-from').value = f; el('df-to').value = t;
+  updDateLbl(); renderAll();
+}
+function setLdPre(p) {
+  const {f,t} = presetRange(p);
+  el('ld-from').value = f; el('ld-to').value = t; updLdInfo();
+}
+function updDateLbl() {
+  const f=el('df-from').value, t=el('df-to').value;
+  el('date-lbl').textContent = (!f&&!t) ? 'All dates' : (f||'start')+' → '+(t||'today');
+}
+function updLdInfo() {
+  const f=el('ld-from')?.value, t=el('ld-to')?.value;
+  const info=el('ld-info'); if(!info) return;
+  info.textContent = (!f&&!t) ? 'All transactions will be imported.' : 'Only '+(f||'start')+' → '+(t||'today')+' will be imported.';
+}
+function inRange(dateStr) {
+  const f=el('df-from').value||'', t=el('df-to').value||'';
+  if (!f&&!t) return true;
+  const d = normDate(dateStr)||dateStr;
+  if (f && d < f) return false;
+  if (t && d > t) return false;
+  return true;
+}
+function filterDate(rows, field) {
+  const f=el('ld-from')?.value||'', t=el('ld-to')?.value||'';
+  if (!f&&!t) return rows;
+  return rows.filter(r => { const d=r[field]||''; return (!f||d>=f)&&(!t||d<=t); });
+}
+
+// ── NAME NORMALIZER ─────────────────────────────────────────
+function normName(s) {
+  return (s||'').replace(/[*.,()]/g,'').trim().toLowerCase().split(/[\s,]+/).filter(Boolean).sort().join(' ');
+}
+
+// ── CSV PARSER ──────────────────────────────────────────────
+function csvRows(text, sep) {
+  sep = sep || ',';
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim().split('\n').filter(l=>l.trim());
+  return lines.map(line => {
+    if (sep==='\t') return line.split('\t').map(c=>c.trim());
+    const cols=[]; let cur='', inQ=false;
+    for (const ch of line) { if(ch==='"')inQ=!inQ; else if(ch===sep&&!inQ){cols.push(cur.trim());cur='';} else cur+=ch; }
+    cols.push(cur.trim()); return cols;
+  });
+}
+
+// ── PARSE QB ────────────────────────────────────────────────
+// Format A: AR/Invoice List  — Date | Transaction type | Num | Name | Memo | Due date | Amount | Open balance
+// Format B: Account Register — account section headers + multi-line invoices
+function parseQB(text) {
+  const rows = csvRows(text);
+  if (!rows.length) return null;
+  let hdrIdx = 0;
+  for (let i = 0; i < Math.min(8, rows.length); i++) {
+    const r = rows[i].map(c=>(c||'').toLowerCase().trim());
+    if (r[0]==='date' && r.some(c=>c.includes('transaction type')||c.includes('amount'))) { hdrIdx=i; break; }
+  }
+  const hdr = rows[hdrIdx].map(c=>(c||'').toLowerCase().trim());
+  const isA = hdr.includes('open balance') && hdr.includes('transaction type');
+  if (isA) {
+    const di=hdr.indexOf('date'), ti=hdr.indexOf('transaction type'), ni=hdr.indexOf('num');
+    const nmi=hdr.indexOf('name'), mi=hdr.indexOf('memo'), ai=hdr.indexOf('amount'), obi=hdr.indexOf('open balance');
+    const invoices=[], payments=[];
+    rows.slice(hdrIdx+1).forEach(r => {
+      const date=normDate(r[di]); if(!date) return;
+      const type=(r[ti]||'').trim(); if(type&&type!=='Invoice'&&type!=='Payment'&&type!=='Credit Memo') return;
+      const name=(r[nmi]||'').trim(); if(!name) return;
+      const amt=pm(r[ai]), openBal=pm(r[obi]||'0'), paid=Math.max(0, amt-openBal);
+      invoices.push({num:(r[ni]||'').trim(), name, date, amt, openBal, paid, memo:(r[mi]||'').trim(), type:'Invoice', format:'A'});
+      if (paid>0.01) payments.push({num:(r[ni]||'').trim(), name, date, amt:paid, type:'Payment', format:'A'});
+    });
+    if (!invoices.length) return null;
+    return { format:'A', invoices, payments, expenses:[], deposits:[], accounts:['QB AR'],
+      totInvoiced:invoices.reduce((s,i)=>s+i.amt,0),
+      totCollected:invoices.reduce((s,i)=>s+i.paid,0),
+      totOpen:invoices.reduce((s,i)=>s+(i.openBal||0),0) };
+  }
+  // Format B
+  let curAcct=''; const invLines={}, payments=[], expenses=[], deposits=[], acctSet=new Set();
+  rows.slice(hdrIdx+1).forEach(r => {
+    if (!r||r.length<2) return;
+    if (r[0]&&r[0].trim()&&(!r[1]||!r[1].trim())) { const h=r[0].trim(); if(!h.startsWith('Total')){curAcct=h;acctSet.add(h);} return; }
+    if (!r[1]||!r[1].trim()) return;
+    const date=normDate(r[1]), type=(r[2]||'').trim(), num=(r[3]||'').trim();
+    const name=(r[4]||'').trim(), desc=(r[5]||'').trim(), amt=pm(r[7]);
+    if (!date||!type) return;
+    const txn={date,type,num,name,desc,amt,acct:curAcct,format:'B'};
+    if (type==='Invoice'&&num&&amt!==0) { if(!invLines[num])invLines[num]={num,name,date,acct:curAcct,lines:[]}; invLines[num].lines.push(amt); if(name&&!invLines[num].name)invLines[num].name=name; }
+    if (type==='Payment') payments.push(txn);
+    if (type==='Expense'||type==='Check') expenses.push(txn);
+    if (type==='Deposit') deposits.push(txn);
+  });
+  const invoices = Object.values(invLines).map(iv=>({num:iv.num,name:iv.name,date:iv.date,acct:iv.acct,amt:iv.lines.reduce((s,v)=>s+v,0),type:'Invoice',format:'B',openBal:null})).filter(i=>i.amt>0);
+  if (!invoices.length&&!payments.length) return null;
+  const totPay = payments.reduce((s,p)=>s+Math.abs(p.amt),0);
+  return { format:'B', invoices, payments, expenses, deposits, accounts:[...acctSet],
+    totInvoiced:invoices.reduce((s,i)=>s+i.amt,0), totCollected:totPay, totOpen:null };
+}
+
+// ── PARSE MC ────────────────────────────────────────────────
+function parseMC(text) {
+  const rows = csvRows(text);
+  if (!rows.length) return null;
+  const hdr = rows[0].map(h=>(h||'').replace(/^\uFEFF/,'').toLowerCase().trim());
+  const isB = hdr.includes('invoice id') || hdr.includes('customer name');
+  if (isB) {
+    const ni=hdr.findIndex(h=>h==='customer name'||h.includes('customer name'));
+    const ti=hdr.findIndex(h=>h.includes('billing terms'));
+    const ai=hdr.findIndex(h=>h.includes('home address')||h.includes('job id')||h.includes('address'));
+    const ii=hdr.findIndex(h=>h==='invoice id');
+    const di=hdr.findIndex(h=>h==='invoice date');
+    const mi=hdr.findIndex(h=>h==='total amount');
+    const bi=hdr.findIndex(h=>h==='balance');
+    if (ii<0||mi<0) return null;
+    const records=[];
+    rows.slice(1).forEach(r => {
+      if (!r[ii]||!r[ii].trim()) return;
+      const name=(r[ni]||'').trim(); if(!name) return;
+      const amt=pm(r[mi]), bal=pm(r[bi]||'0');
+      const ap=(r[ai]||'').split('|').map(p=>p.trim());
+      records.push({invoiceId:r[ii].trim(), name, terms:(r[ti]||'').trim(), address:ap[0]||'', jobId:ap[1]||'', jobDate:ap[2]?normDate(ap[2].split(' ')[0]):'', date:normDate(r[di]||''), amt, balance:bal, paid:bal<0.01, format:'B'});
+    });
+    if (!records.length) return null;
+    const byInvoice={};records.forEach(r=>{byInvoice[r.invoiceId]=r;});
+    return { format:'B', records, byInvoice, count:records.length,
+      totalBilled:records.reduce((s,r)=>s+r.amt,0),
+      totalCollected:records.filter(r=>r.paid).reduce((s,r)=>s+r.amt,0),
+      outstanding:records.filter(r=>!r.paid).reduce((s,r)=>s+r.amt,0) };
+  } else {
+    const ri=hdr.findIndex(h=>h==='reference'), mi=hdr.findIndex(h=>h==='total charge');
+    const li=hdr.findIndex(h=>h.includes('last name')), fi=hdr.findIndex(h=>h.includes('first name'));
+    const di=hdr.findIndex(h=>h==='job date'), si=hdr.findIndex(h=>h==='status');
+    if (ri<0||mi<0) return null;
+    const records=[];
+    rows.slice(1).forEach(r => {
+      if (!r[ri]) return;
+      const ln=(r[li]||'').trim(), fn=(r[fi]||'').trim();
+      records.push({ref:r[ri].trim(), name:fn&&ln?fn+' '+ln:ln||fn, amt:pm(r[mi]), date:normDate(r[di]||''), status:(r[si]||'').trim(), paid:true, balance:0, format:'A'});
+    });
+    if (!records.length) return null;
+    const byRef={};records.forEach(r=>{byRef[r.ref]=r;});
+    return { format:'A', records, byRef, count:records.length,
+      totalBilled:records.reduce((s,r)=>s+r.amt,0), totalCollected:records.reduce((s,r)=>s+r.amt,0), outstanding:0 };
+  }
+}
+
+// ── DEPOSIT DETECTION ───────────────────────────────────────
+const DEP_KW = ['deposit','initial','new client','first clean','first service','onboarding','setup','start'];
+function isDeposit(p) { return DEP_KW.some(kw=>((p.desc||'')+(p.name||'')).toLowerCase().includes(kw)); }
+
+// ── RECONCILE ───────────────────────────────────────────────
+function reconcile(qb, mc) {
+  const invoices = qb ? qb.invoices : [];
+  const isA = qb && qb.format === 'A';
+  const qbPayments = qb ? (qb.payments||[]) : [];
+  // MC lookup by invoice ID
+  const mcByInv = mc && mc.format==='B' ? (mc.byInvoice||{}) : {};
+  const mcByRef = mc && mc.format==='A' ? (mc.byRef||{}) : {};
+  const mcMap = {...mcByInv, ...mcByRef};
+  const mcRecs = mc ? mc.records : [];
+  const qbInvSet = new Set(invoices.map(i=>i.num).filter(Boolean));
+  const mcInvSet = new Set(mcRecs.map(r=>r.invoiceId||r.ref).filter(Boolean));
+
+  // ── Gap categories ──────────────────────────────────────
+  const inQBnotMC = invoices.filter(i => i.num && !mcInvSet.has(i.num));
+  const inMCnotQB = mcRecs.filter(r => { const id=r.invoiceId||r.ref; return id && !qbInvSet.has(id); });
+  const amtMismatches = [];
+  const statusMismatches = [];
+  invoices.forEach(inv => {
+    if (!inv.num) return;
+    const mcRec = mcMap[inv.num]; if (!mcRec) return;
+    const diff = parseFloat((inv.amt - mcRec.amt).toFixed(2));
+    if (Math.abs(diff) > 0.01) amtMismatches.push({num:inv.num, name:inv.name, date:inv.date, qbAmt:inv.amt, mcAmt:mcRec.amt, diff});
+    if (isA && Math.abs(diff)<=0.01) {
+      const qbPaid=(inv.openBal||0)<0.01, mcPaid=mcRec.paid;
+      if (qbPaid !== mcPaid) statusMismatches.push({num:inv.num, name:inv.name, date:inv.date, amt:inv.amt, qbPaid, mcPaid});
+    }
+  });
+
+  // ── Invoice-level reconcile ─────────────────────────────
+  const matched=[], outstanding=[], partials=[];
+  const invoicedNames = new Set();
+  invoices.forEach(inv => {
+    invoicedNames.add(normName(inv.name));
+    const mcRec = mcMap[inv.num];
+    if (isA) {
+      const paid = inv.paid || Math.max(0, inv.amt-(inv.openBal||0));
+      const openBal = inv.openBal||0;
+      const status = openBal<0.01 ? 'matched' : paid>0.01 ? 'partial' : 'outstanding';
+      const row = {name:inv.name, num:inv.num, date:inv.date, invoiceAmt:inv.amt, paidAmt:paid, openBal, mcMatched:!!mcRec, mcPaid:mcRec?mcRec.paid:null, status};
+      if (status==='matched') matched.push(row);
+      else if (status==='partial') partials.push(row);
+      else outstanding.push(row);
+    } else {
+      // Format B: match by name
+      const payByName={};
+      qbPayments.forEach(p=>{const k=normName(p.name);if(!payByName[k])payByName[k]=[];payByName[k].push(p);});
+      const namePays = payByName[normName(inv.name)] || [];
+      if (namePays.length) {
+        const totalPaid = namePays.reduce((s,p)=>s+Math.abs(p.amt),0);
+        const status = Math.abs(totalPaid-inv.amt)<0.01 ? 'matched' : 'partial';
+        const row = {name:inv.name, num:inv.num, date:inv.date, invoiceAmt:inv.amt, paidAmt:totalPaid, openBal:Math.max(0,inv.amt-totalPaid), mcMatched:!!mcRec, mcPaid:mcRec?mcRec.paid:null, status};
+        if (status==='matched') matched.push(row); else partials.push(row);
+      } else {
+        outstanding.push({name:inv.name, num:inv.num, date:inv.date, invoiceAmt:inv.amt, paidAmt:0, openBal:inv.amt, mcMatched:!!mcRec, mcPaid:mcRec?mcRec.paid:null, status:'outstanding'});
+      }
+    }
+  });
+
+  // ── QB payments with no invoice ─────────────────────────
+  const directAll = qbPayments.filter(p=>!invoicedNames.has(normName(p.name)));
+  const deposits = directAll.filter(p=>isDeposit(p));
+  const directOther = directAll.filter(p=>!isDeposit(p));
+
+  // ── Totals ──────────────────────────────────────────────
+  const totInv = invoices.reduce((s,i)=>s+i.amt, 0);
+  const totQBColl = isA ? invoices.reduce((s,i)=>s+(i.paid||0), 0) : qbPayments.reduce((s,p)=>s+Math.abs(p.amt),0);
+  const totQBOpen = isA ? invoices.reduce((s,i)=>s+(i.openBal||0), 0) : outstanding.reduce((s,o)=>s+o.invoiceAmt,0);
+  const totMCBill = mc ? mc.totalBilled : 0;
+  const totMCColl = mc ? mc.totalCollected : 0;
+  const totMCOut  = mc ? mc.outstanding : 0;
+  const billedGap    = parseFloat((totInv - totMCBill).toFixed(2));
+  const collectedGap = parseFloat((totQBColl - totMCColl).toFixed(2));
+  const qbOnlyAmt    = inQBnotMC.reduce((s,i)=>s+i.amt, 0);
+  const mcOnlyAmt    = inMCnotQB.reduce((s,r)=>s+r.amt, 0);
+  const mismatchAmt  = amtMismatches.reduce((s,m)=>s+m.diff, 0);
+
+  return {
+    matched, outstanding, partials, deposits, directOther,
+    inQBnotMC, inMCnotQB, amtMismatches, statusMismatches,
+    totInv, totQBColl, totQBOpen, totMCBill, totMCColl, totMCOut,
+    billedGap, collectedGap, qbOnlyAmt, mcOnlyAmt, mismatchAmt,
+    matchedCount:matched.length, outCount:outstanding.length, partCount:partials.length
+  };
+}
+
+// ── AGGREGATE ACROSS DATASETS ───────────────────────────────
+function getAgg() {
+  const ds = Object.values(DB.datasets||{});
+  const a = {
+    matched:[], outstanding:[], partials:[], deposits:[], directOther:[],
+    inQBnotMC:[], inMCnotQB:[], amtMismatches:[], statusMismatches:[],
+    totInv:0, totQBColl:0, totQBOpen:0, totMCBill:0, totMCColl:0, totMCOut:0,
+    billedGap:0, collectedGap:0, qbOnlyAmt:0, mcOnlyAmt:0, mismatchAmt:0,
+    matchedCount:0, outCount:0, partCount:0,
+    hasQB:false, hasMC:false
+  };
+  ds.forEach(d => {
+    const r = d.reconciliation; if (!r) return;
+    ['matched','outstanding','partials','deposits','directOther','inQBnotMC','inMCnotQB','amtMismatches','statusMismatches'].forEach(k=>{a[k].push(...(r[k]||[]));});
+    ['totInv','totQBColl','totQBOpen','totMCBill','totMCColl','totMCOut','billedGap','collectedGap','qbOnlyAmt','mcOnlyAmt','mismatchAmt','matchedCount','outCount','partCount'].forEach(k=>{a[k]+=(r[k]||0);});
+    if (d.qbRaw) a.hasQB=true;
+    if (d.mcRaw) a.hasMC=true;
+  });
+  // Apply date filter to detail arrays
+  ['matched','outstanding','partials','inQBnotMC','inMCnotQB','amtMismatches','statusMismatches','deposits','directOther'].forEach(k=>{
+    a[k]=a[k].filter(r=>inRange(r.date||''));
+  });
+  // Recompute filtered totals
+  a.totInv      = [...a.matched,...a.outstanding,...a.partials].reduce((s,r)=>s+(r.invoiceAmt||0),0);
+  a.totQBColl   = [...a.matched,...a.partials].reduce((s,r)=>s+(r.paidAmt||0),0);
+  a.totQBOpen   = [...a.outstanding,...a.partials].reduce((s,r)=>s+(r.openBal||0),0);
+  a.totMCBill   = [...a.matched,...a.outstanding,...a.partials].reduce((s,r)=>s+(r.invoiceAmt||0),0);
+  // inMCnotQB contributes to MC billed too
+  a.totMCBill  += a.inMCnotQB.reduce((s,r)=>s+(r.amt||0),0);
+  a.billedGap   = parseFloat((a.totInv - (a.totMCBill - a.inMCnotQB.reduce((s,r)=>s+(r.amt||0),0))).toFixed(2));
+  return a;
+}
+
+// ── COLLECT RAW ROWS FOR QB TAB ─────────────────────────────
+function getQBRaw() {
+  // qbRaw is not persisted to localStorage (too large) — only available in the current session
+  // after a fresh import. The QB tab shows a notice if raw data isn't in memory.
+  const inv=[], pay=[], exp=[], dep=[];
+  const accounts = new Set();
+  Object.values(DB.datasets||{}).forEach(d => {
+    if (!d.qbRaw) return; // stripped from storage — only present right after import
+    inv.push(...d.qbRaw.invoices.filter(x=>inRange(x.date)));
+    pay.push(...(d.qbRaw.payments||[]).filter(x=>inRange(x.date)));
+    exp.push(...(d.qbRaw.expenses||[]).filter(x=>inRange(x.date)));
+    dep.push(...(d.qbRaw.deposits||[]).filter(x=>inRange(x.date)));
+    (d.qbRaw.accounts||[]).forEach(a=>accounts.add(a));
+  });
+  return {inv, pay, exp, dep, accounts:[...accounts]};
+}
+
+function getMCRaw() {
+  const recs=[], terms=new Set(); let format='B';
+  Object.values(DB.datasets||{}).forEach(d => {
+    if (!d.mcRaw) return; // not persisted — only present in current session after import
+    format = d.mcRaw.format;
+    d.mcRaw.records.filter(x=>inRange(x.date)).forEach(r=>{ recs.push(r); if(r.terms)terms.add(r.terms); });
+  });
+  return {recs, format, terms:[...terms]};
+}
+
+// ── TAB STATE ───────────────────────────────────────────────
+let curTab='recon', curRecTab='diff', curQBTab='inv';
+const qbState={pg:1}, mcState={pg:1};
+
+function showTab(tab, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.htab').forEach(b=>b.classList.remove('act'));
+  el('tab-'+tab).classList.add('act');
+  if (btn) btn.classList.add('act');
+  curTab = tab;
+  renderAll();
+}
+
+function setRecTab(tab, btn) {
+  curRecTab = tab;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('act'));
+  if (btn) btn.classList.add('act');
+  renderRecPanel();
+}
+
+function setQBTab(tab, btn) {
+  curQBTab = tab; qbState.pg = 1;
+  document.querySelectorAll('[id^="qbt-"]').forEach(b=>b.classList.remove('act'));
+  if (btn) btn.classList.add('act');
+  renderQBTable();
+}
+
+function qbPg(d) { qbState.pg = Math.max(1, qbState.pg+d); renderQBTable(); }
+function mcPg(d) { mcState.pg = Math.max(1, mcState.pg+d); renderMCTable(); }
+
+function renderAll() {
+  updDateLbl();
+  updHdrInfo();
+  if (curTab==='recon')   { renderBalCard(); renderRecPanel(); }
+  if (curTab==='qb')      { renderQBKPIs(); renderQBTable(); }
+  if (curTab==='mc')      { renderMCKPIs(); renderMCTable(); }
+  if (curTab==='history') renderHistory();
+}
+
+function updHdrInfo() {
+  const ds = Object.values(DB.datasets||{});
+  const srcs=[]; ds.forEach(d=>{if(d.qbRaw&&!srcs.includes('QB'))srcs.push('QB');if(d.mcRaw&&!srcs.includes('MC'))srcs.push('MC');});
+  el('hdr-info').textContent = ds.length+' dataset'+(ds.length!==1?'s':'')+' · '+(srcs.length?srcs.join(' + '):'no sources');
+}
+
+// ── RECONCILE RENDER ────────────────────────────────────────
+function renderBalCard() {
+  const agg = getAgg();
+  const bb = Math.abs(agg.billedGap)<0.01;
+  const cb = Math.abs(agg.collectedGap)<0.01;
+  const balanced = bb && cb && !agg.inQBnotMC.length && !agg.inMCnotQB.length && !agg.amtMismatches.length;
+  const borderColor = balanced ? 'var(--grn)' : 'var(--red)';
+
+  let diffItems = '';
+  if (agg.inQBnotMC.length) diffItems+=`<div class="bal-row"><span style="color:var(--ink2)">&#9656; ${agg.inQBnotMC.length} invoice${agg.inQBnotMC.length!==1?'s':''} in QB, not in MC</span><span class="mono" style="color:var(--red);font-weight:600">+${fmt(agg.qbOnlyAmt)}</span></div>`;
+  if (agg.inMCnotQB.length) diffItems+=`<div class="bal-row"><span style="color:var(--ink2)">&#9656; ${agg.inMCnotQB.length} invoice${agg.inMCnotQB.length!==1?'s':''} in MC, not in QB</span><span class="mono" style="color:var(--amber);font-weight:600">-${fmt(agg.mcOnlyAmt)}</span></div>`;
+  if (agg.amtMismatches.length) diffItems+=`<div class="bal-row"><span style="color:var(--ink2)">&#9656; ${agg.amtMismatches.length} amount mismatch${agg.amtMismatches.length!==1?'es':''}</span><span class="mono" style="color:var(--purple);font-weight:600">${agg.mismatchAmt>=0?'+':''}${fmt(agg.mismatchAmt)}</span></div>`;
+  if (agg.statusMismatches.length) diffItems+=`<div class="bal-row"><span style="color:var(--ink2)">&#9656; ${agg.statusMismatches.length} payment status difference${agg.statusMismatches.length!==1?'s':''}</span><span class="mono" style="color:var(--gold);font-weight:600">status only</span></div>`;
+
+  el('bal-card').style.border = `2px solid ${borderColor}`;
+  el('bal-card').innerHTML = `
+    <div class="bal-grid">
+      <div class="bal-cell">
+        <div class="bal-lbl">MC Total Billed</div>
+        <div class="bal-val" style="color:var(--amber)">${agg.hasMC?fmt(agg.totMCBill):'—'}</div>
+        <div class="bal-sub">${agg.hasMC?'From MaidCentral':'No MC data loaded'}</div>
+      </div>
+      <div class="bal-cell">
+        <div class="bal-lbl">QB Total Invoiced</div>
+        <div class="bal-val" style="color:var(--blue)">${agg.hasQB?fmt(agg.totInv):'—'}</div>
+        <div class="bal-sub">${agg.hasQB?'From QuickBooks':'No QB data loaded'}</div>
+      </div>
+      <div class="bal-cell">
+        <div class="bal-lbl">Billed Gap (QB − MC)</div>
+        <div class="bal-val" style="color:${bb&&!agg.inQBnotMC.length&&!agg.inMCnotQB.length?'var(--grn)':'var(--red)'}">${bb?'&#10003; Match':fmt(Math.abs(agg.billedGap))}</div>
+        <div class="bal-sub">${bb?'QB = MC':'QB '+(agg.billedGap>0?'higher':'lower')+' by '+fmt(Math.abs(agg.billedGap))}</div>
+      </div>
+      <div class="bal-cell">
+        <div class="bal-lbl">Collected Gap (QB − MC)</div>
+        <div class="bal-val" style="color:${cb?'var(--grn)':'var(--red)'}">${cb?'&#10003; Match':fmt(Math.abs(agg.collectedGap))}</div>
+        <div class="bal-sub">${cb?'QB = MC':'QB '+(agg.collectedGap>0?'higher':'lower')+' by '+fmt(Math.abs(agg.collectedGap))}</div>
+      </div>
+    </div>
+    ${diffItems ? `<div class="bal-items"><div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">What accounts for the difference</div>${diffItems}</div>` : `<div class="bal-items"><div style="color:var(--grn);font-family:var(--mono);font-size:11px">&#10003; All invoices match between QB and MC — books are balanced.</div></div>`}
+  `;
+}
+
+function renderRecPanel() {
+  const agg = getAgg();
+  const srch = (el('rc-search')?.value||'').toLowerCase();
+  let html = '', count = 0;
+  const s = (x) => srch ? x.filter(r=>(r.name||'').toLowerCase().includes(srch)||(r.num||r.invoiceId||'').toString().includes(srch)) : x;
+
+  if (curRecTab==='diff') {
+    const secs=[];
+    const qbOnly=s([...agg.inQBnotMC]);
+    if (qbOnly.length) {
+      count+=qbOnly.length;
+      const tot=qbOnly.reduce((a,r)=>a+r.amt,0);
+      secs.push(`<div class="diff-section"><div class="diff-hdr"><div><span class="diff-label" style="color:var(--red)">&#9656; In QuickBooks — Missing from MaidCentral</span><span class="diff-meta" style="margin-left:10px">${qbOnly.length} invoice${qbOnly.length!==1?'s':''}</span></div><span class="diff-total" style="color:var(--red)">${fmt(tot)}</span></div><div class="tw"><table><thead><tr><th>Client</th><th>Invoice #</th><th>Date</th><th class="r">QB Amount</th><th>What this means</th></tr></thead><tbody>${qbOnly.map(r=>`<tr><td style="font-weight:500">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.num||'—'}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td class="r mono" style="color:var(--red);font-weight:600">${fmt(r.amt)}</td><td style="font-size:10px;color:var(--ink3)">Invoice exists in QB but was not synced to MaidCentral</td></tr>`).join('')}</tbody></table></div></div>`);
+    }
+    const mcOnly=s([...agg.inMCnotQB]);
+    if (mcOnly.length) {
+      count+=mcOnly.length;
+      const tot=mcOnly.reduce((a,r)=>a+r.amt,0);
+      secs.push(`<div class="diff-section"><div class="diff-hdr"><div><span class="diff-label" style="color:var(--amber)">&#9656; In MaidCentral — Missing from QuickBooks</span><span class="diff-meta" style="margin-left:10px">${mcOnly.length} invoice${mcOnly.length!==1?'s':''}</span></div><span class="diff-total" style="color:var(--amber)">${fmt(tot)}</span></div><div class="tw"><table><thead><tr><th>Client</th><th>Invoice ID</th><th>Date</th><th class="r">MC Amount</th><th>Balance</th><th>What this means</th></tr></thead><tbody>${mcOnly.map(r=>`<tr><td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.invoiceId||r.ref||'—'}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td class="r mono" style="color:var(--amber);font-weight:600">${fmt(r.amt)}</td><td><span class="pill ${r.paid?'p-ok':'p-out'}">${r.paid?'Paid':'Owed'}</span></td><td style="font-size:10px;color:var(--ink3)">In MC but not yet posted to QB — sync delay?</td></tr>`).join('')}</tbody></table></div></div>`);
+    }
+    const amtMis=s([...agg.amtMismatches]);
+    if (amtMis.length) {
+      count+=amtMis.length;
+      secs.push(`<div class="diff-section"><div class="diff-hdr"><div><span class="diff-label" style="color:var(--purple)">&#9656; Amount Mismatches — Same Invoice ID, Different Dollar Amount</span><span class="diff-meta" style="margin-left:10px">${amtMis.length} invoice${amtMis.length!==1?'s':''}</span></div></div><div class="tw"><table><thead><tr><th>Client</th><th>Invoice #</th><th>Date</th><th class="r">QB Amount</th><th class="r">MC Amount</th><th class="r">Difference</th><th>Likely cause</th></tr></thead><tbody>${amtMis.map(m=>`<tr><td style="font-weight:500">${m.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${m.num}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${m.date}</td><td class="r mono" style="color:var(--blue)">${fmt(m.qbAmt)}</td><td class="r mono" style="color:var(--amber)">${fmt(m.mcAmt)}</td><td class="r mono" style="color:var(--purple);font-weight:600">${m.diff>0?'+':''}${fmt(m.diff)}</td><td style="font-size:10px;color:var(--ink3)">${m.diff>0?'QB higher — tax or surcharge added in QB?':'MC higher — credit or discount applied in QB?'}</td></tr>`).join('')}</tbody></table></div></div>`);
+    }
+    const statMis=s([...agg.statusMismatches]);
+    if (statMis.length) {
+      count+=statMis.length;
+      secs.push(`<div class="diff-section"><div class="diff-hdr"><span class="diff-label" style="color:var(--gold)">&#9656; Payment Status Differences — Same Amount, Different Paid Status</span></div><div class="tw"><table><thead><tr><th>Client</th><th>Invoice #</th><th>Date</th><th class="r">Amount</th><th>QB Status</th><th>MC Status</th></tr></thead><tbody>${statMis.map(m=>`<tr><td style="font-weight:500">${m.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${m.num}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${m.date}</td><td class="r mono">${fmt(m.amt)}</td><td><span class="pill ${m.qbPaid?'p-ok':'p-out'}">${m.qbPaid?'Paid':'Owed'}</span></td><td><span class="pill ${m.mcPaid?'p-ok':'p-out'}">${m.mcPaid?'Paid':'Owed'}</span></td></tr>`).join('')}</tbody></table></div></div>`);
+    }
+    html = secs.length ? secs.join('') : `<div class="info-grn info" style="padding:1.5rem;text-align:center;font-family:var(--mono)">&#10003; No differences found — QB and MC match for the selected period.</div>`;
+
+  } else if (curRecTab==='matched') {
+    const rows=s([...agg.matched]).sort((a,b)=>b.date.localeCompare(a.date)); count=rows.length;
+    html=`<div class="card-np"><div class="tw"><table><thead><tr><th>Client</th><th>Invoice #</th><th>Date</th><th class="r">Amount</th><th class="r">Paid</th><th>In MC?</th></tr></thead><tbody>${rows.length?rows.slice(0,PG).map(r=>`<tr><td style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.num||'—'}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td class="r mono">${fmt(r.invoiceAmt)}</td><td class="r mono" style="color:var(--grn);font-weight:600">${fmt(r.paidAmt)}</td><td>${r.mcMatched?'<span class="pill p-mc" style="font-size:8px">MC ✓</span>':''}</td></tr>`).join(''):`<tr><td colspan="6" class="no-data">No matched invoices</td></tr>`}</tbody></table></div></div>`;
+
+  } else if (curRecTab==='outstanding') {
+    const rows=s([...agg.outstanding,...agg.partials]).sort((a,b)=>a.date.localeCompare(b.date)); count=rows.length;
+    const totOwed=rows.reduce((s,r)=>s+(r.openBal||0),0);
+    html=`${rows.length?`<div class="info info-red">Total owed: <strong>${fmt(totOwed)}</strong> across ${rows.length} invoice${rows.length!==1?'s':''}</div>`:''}<div class="card-np"><div class="tw"><table><thead><tr><th>Client</th><th>Invoice #</th><th>Date</th><th class="r">Billed</th><th class="r">Paid</th><th class="r">Owed</th><th>In MC?</th><th>Status</th></tr></thead><tbody>${rows.length?rows.slice(0,PG).map(r=>`<tr><td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.num||'—'}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td class="r mono">${fmt(r.invoiceAmt)}</td><td class="r mono" style="color:var(--amber)">${r.paidAmt>0?fmt(r.paidAmt):'—'}</td><td class="r mono" style="color:var(--red);font-weight:600">${fmt(r.openBal||0)}</td><td>${r.mcMatched?'<span class="pill p-mc" style="font-size:8px">MC ✓</span>':''}</td><td><span class="pill ${r.status==='partial'?'p-part':'p-out'}">${r.status==='partial'?'Partial':'Unpaid'}</span></td></tr>`).join(''):`<tr><td colspan="8" class="no-data">No outstanding invoices &#10003;</td></tr>`}</tbody></table></div></div>`;
+
+  } else if (curRecTab==='qbonly') {
+    const rows=s([...agg.inQBnotMC]).sort((a,b)=>b.date.localeCompare(a.date)); count=rows.length;
+    html=`<div class="info info-red">These invoices exist in QuickBooks but have no matching Invoice ID in MaidCentral. MaidCentral feeds QB, so these may have been entered directly in QB, or the sync failed.</div><div class="card-np"><div class="tw"><table><thead><tr><th>Client</th><th>Invoice #</th><th>Date</th><th class="r">QB Amount</th><th>Open Balance</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td style="font-weight:500">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.num||'—'}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td class="r mono" style="color:var(--blue);font-weight:600">${fmt(r.amt)}</td><td><span class="pill ${(r.openBal||0)<0.01?'p-ok':'p-out'}">${(r.openBal||0)<0.01?'Paid':'Owed ${fmt(r.openBal||0)}'}</span></td></tr>`).join(''):`<tr><td colspan="5" class="no-data">All QB invoices found in MC &#10003;</td></tr>`}</tbody></table></div></div>`;
+
+  } else if (curRecTab==='mconly') {
+    const rows=s([...agg.inMCnotQB]).sort((a,b)=>b.date.localeCompare(a.date)); count=rows.length;
+    html=`<div class="info info-amber">These invoices are in MaidCentral but have no matching Invoice ID in QuickBooks. This usually means the MC → QB sync hasn't run yet, or the invoice was voided in QB.</div><div class="card-np"><div class="tw"><table><thead><tr><th>Client</th><th>Invoice ID</th><th>Date</th><th>Terms</th><th class="r">Amount</th><th class="r">Balance</th><th>Status</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.invoiceId||r.ref||'—'}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td style="font-size:10px;color:var(--ink3)">${r.terms||'—'}</td><td class="r mono">${fmt(r.amt)}</td><td class="r mono" style="color:${r.paid?'var(--grn)':'var(--red)'}">${fmt(r.balance||0)}</td><td><span class="pill ${r.paid?'p-ok':'p-out'}">${r.paid?'Paid':'Owed'}</span></td></tr>`).join(''):`<tr><td colspan="7" class="no-data">All MC invoices found in QB &#10003;</td></tr>`}</tbody></table></div></div>`;
+
+  } else if (curRecTab==='direct') {
+    const deps=s([...agg.deposits]), dirs=s([...agg.directOther]); count=deps.length+dirs.length;
+    html=`<div class="info info-blue">QB payments with no matching invoice in this period. Deposits are flagged by description keywords. Direct payments may be late payers or ACH payments not linked to an MC invoice.</div>
+    ${deps.length?`<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">New client deposits</div><div class="card-np" style="margin-bottom:12px"><div class="tw"><table><thead><tr><th>Client</th><th>Description</th><th>Date</th><th class="r">Amount</th></tr></thead><tbody>${deps.map(p=>`<tr><td style="font-weight:500">${p.name||'—'}</td><td style="font-size:10px;color:var(--ink3)">${p.desc||'—'}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${p.date}</td><td class="r mono" style="color:var(--teal);font-weight:600">${fmt(Math.abs(p.amt))}</td></tr>`).join('')}</tbody></table></div></div>`:''}
+    ${dirs.length?`<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Other direct payments</div><div class="card-np"><div class="tw"><table><thead><tr><th>Client</th><th>Description</th><th>Date</th><th class="r">Amount</th></tr></thead><tbody>${dirs.map(p=>`<tr><td style="font-weight:500">${p.name||'—'}</td><td style="font-size:10px;color:var(--ink3)">${p.desc||'—'}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${p.date}</td><td class="r mono" style="color:var(--blue);font-weight:600">${fmt(Math.abs(p.amt))}</td></tr>`).join('')}</tbody></table></div></div>`:(!deps.length?`<div class="no-data">No direct payments found</div>`:'')}`;
+  }
+
+  el('rc-count').textContent = count.toLocaleString()+' records';
+  el('rc-panel').innerHTML = html;
+}
+
+// ── QB TAB ──────────────────────────────────────────────────
+function renderQBKPIs() {
+  const q=getQBRaw();
+  // Check if any raw data is actually available
+  const hasRaw = Object.values(DB.datasets||{}).some(d=>d.qbRaw);
+  if (!hasRaw) {
+    el('qb-kpis').innerHTML=`<div style="grid-column:1/-1;font-family:var(--mono);font-size:11px;color:var(--ink3);padding:10px 0">
+      ℹ Raw QB transaction data is not stored between sessions to save space.
+      Re-load your QB file to browse individual transactions — the Reconcile tab always shows the full summary.
+    </div>`;
+    el('qb-tbl').innerHTML='<thead></thead><tbody><tr><td colspan="7" class="no-data">Re-load QB data to view individual transactions</td></tr></tbody>';
+    return;
+  }
+  const totInv=q.inv.reduce((s,i)=>s+i.amt,0);
+  const totPay=q.pay.reduce((s,p)=>s+Math.abs(p.amt),0);
+  const isFA=q.inv.length>0&&q.inv[0].format==='A';
+  const totOpen=isFA?q.inv.reduce((s,i)=>s+(i.openBal||0),0):0;
+  el('qb-kpis').innerHTML=`
+    <div class="kpi k-blue"><div class="kl">Total Invoiced</div><div class="kv">${fmtK(totInv)}</div><div class="ks">${q.inv.length} invoices</div></div>
+    <div class="kpi k-grn"><div class="kl">Collected</div><div class="kv">${fmtK(isFA?totInv-totOpen:totPay)}</div><div class="ks">${isFA?q.inv.filter(i=>(i.openBal||0)<0.01).length:q.pay.length} paid</div></div>
+    ${isFA?`<div class="kpi k-red"><div class="kl">Open Balance</div><div class="kv">${fmtK(totOpen)}</div><div class="ks">${q.inv.filter(i=>(i.openBal||0)>0.01).length} unpaid</div></div>`:`<div class="kpi k-red"><div class="kl">Expenses</div><div class="kv">${fmtK(Math.abs(q.exp.reduce((s,e)=>s+e.amt,0)))}</div><div class="ks">${q.exp.length} rows</div></div>`}
+    <div class="kpi k-gold"><div class="kl">Collection Rate</div><div class="kv">${pf(pct(isFA?totInv-totOpen:totPay,totInv))}</div><div class="ks">Paid ÷ invoiced</div></div>
+    <div class="kpi k-ink"><div class="kl">Format</div><div class="kv" style="font-size:13px">${isFA?'AR Report':'Ledger'}</div><div class="ks">${isFA?'Invoice List (A)':'Account Register (B)'}</div></div>`;
+}
+
+function renderQBTable() {
+  const q=getQBRaw();
+  const srch=(el('qb-search').value||'').toLowerCase();
+  const filt=el('qb-filter').value;
+  let rows=[];
+  if(curQBTab==='inv') rows=q.inv;
+  else if(curQBTab==='pay') rows=q.pay;
+  else if(curQBTab==='exp') rows=q.exp;
+  else if(curQBTab==='dep') rows=q.dep;
+  else rows=[...q.inv,...q.pay,...q.exp,...q.dep];
+  if(srch) rows=rows.filter(r=>((r.name||'')+(r.desc||'')+(r.num||'')).toLowerCase().includes(srch));
+  if(filt==='outstanding') rows=rows.filter(r=>(r.openBal||0)>0.01);
+  if(filt==='paid') rows=rows.filter(r=>(r.openBal||0)<0.01&&r.type==='Invoice');
+  rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));
+  const tot=rows.length, st=(qbState.pg-1)*PG, sl=rows.slice(st,st+PG);
+  el('qb-count').textContent=tot.toLocaleString()+' rows';
+  el('qb-pi').textContent=`${(st+1).toLocaleString()}–${Math.min(st+PG,tot).toLocaleString()} of ${tot.toLocaleString()}`;
+  el('qb-prev').disabled=qbState.pg<=1;
+  el('qb-next').disabled=st+PG>=tot;
+  const isFA=sl.length>0&&sl[0].format==='A'&&(curQBTab==='inv'||curQBTab==='all');
+  if(isFA){
+    el('qb-tbl').innerHTML='<thead><tr><th>Date</th><th>Client</th><th>Invoice #</th><th>Memo</th><th class="r">Amount</th><th class="r">Open Balance</th><th>Status</th></tr></thead><tbody>'+
+      sl.map(r=>{const ob=r.openBal||0;return`<tr><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500" title="${r.name}">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.num||'—'}</td><td style="font-size:10px;color:var(--ink3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.memo||'—'}</td><td class="r mono">${fmt(r.amt)}</td><td class="r mono" style="font-weight:600;color:${ob<0.01?'var(--grn)':'var(--red)'}">${fmt(ob)}</td><td><span class="pill ${ob<0.01?'p-ok':'p-out'}">${ob<0.01?'Paid':'Owed'}</span></td></tr>`;}).join('')+'</tbody>';
+  }else{
+    el('qb-tbl').innerHTML='<thead><tr><th>Date</th><th>Client / Description</th><th>Type</th><th>Invoice / Ref</th><th>Account</th><th class="r">Amount</th></tr></thead><tbody>'+
+      sl.map(r=>{const pos=r.amt>0||(r.type==='Invoice');return`<tr><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:${r.name?'500':'400'}" title="${r.name||r.desc||''}">${r.name||r.desc||'—'}</td><td><span class="pill" style="background:rgba(0,0,0,.06);color:var(--ink3)">${r.type||'—'}</span></td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.num||r.ref||'—'}</td><td style="font-size:10px;color:var(--ink3)">${r.acct||'—'}</td><td class="r mono" style="color:${pos?'var(--grn)':'var(--red)'};font-weight:600">${fmt(Math.abs(r.amt))}</td></tr>`;}).join('')+'</tbody>';
+  }
+}
+
+// ── MC TAB ───────────────────────────────────────────────────
+function renderMCKPIs() {
+  const hasRaw=Object.values(DB.datasets||{}).some(d=>d.mcRaw);
+  if (!hasRaw) {
+    el('mc-kpis').innerHTML=`<div style="grid-column:1/-1;font-family:var(--mono);font-size:11px;color:var(--ink3);padding:10px 0">
+      ℹ Raw MC data is not stored between sessions. Re-load your MC file to browse individual records.
+    </div>`;
+    el('mc-tbl').innerHTML='<thead></thead><tbody><tr><td colspan="8" class="no-data">Re-load MC data to view individual records</td></tr></tbody>';
+    return;
+  }
+  const{recs,format}=getMCRaw();
+  const billed=recs.reduce((s,r)=>s+r.amt,0), paid=recs.filter(r=>r.paid).reduce((s,r)=>s+r.amt,0), out=billed-paid;
+  el('mc-banner').style.display='block';
+  el('mc-banner').textContent=format==='B'?'AR/Billing report — Invoice ID matches QB Invoice Number. Balance = 0 means paid.':'Payments report (Format A) — Reference matches QB payment reference.';
+  el('mc-kpis').innerHTML=`
+    <div class="kpi k-amber"><div class="kl">Total Billed</div><div class="kv">${fmtK(billed)}</div><div class="ks">${recs.length} invoices</div></div>
+    <div class="kpi k-grn"><div class="kl">Collected</div><div class="kv">${fmtK(paid)}</div><div class="ks">${pf(pct(paid,billed))} rate</div></div>
+    <div class="kpi k-red"><div class="kl">Outstanding</div><div class="kv">${fmtK(out)}</div><div class="ks">${recs.filter(r=>!r.paid).length} unpaid</div></div>
+    <div class="kpi k-blue"><div class="kl">Unique Clients</div><div class="kv">${new Set(recs.map(r=>normName(r.name))).size}</div><div class="ks">Across all invoices</div></div>
+    <div class="kpi k-gold"><div class="kl">Avg Invoice</div><div class="kv">${recs.length?fmtK(billed/recs.length):'—'}</div><div class="ks">Per invoice</div></div>`;
+}
+
+function renderMCTable() {
+  const{recs,format}=getMCRaw();
+  const srch=(el('mc-search').value||'').toLowerCase(), filt=el('mc-filter').value;
+  let rows=[...recs].sort((a,b)=>b.date.localeCompare(a.date));
+  if(srch) rows=rows.filter(r=>(r.name+(r.invoiceId||r.ref||'')).toLowerCase().includes(srch));
+  if(filt==='paid') rows=rows.filter(r=>r.paid);
+  if(filt==='outstanding') rows=rows.filter(r=>!r.paid);
+  const tot=rows.length, st=(mcState.pg-1)*PG, sl=rows.slice(st,st+PG);
+  el('mc-count').textContent=tot.toLocaleString()+' records';
+  el('mc-pi').textContent=`${(st+1).toLocaleString()}–${Math.min(st+PG,tot).toLocaleString()} of ${tot.toLocaleString()}`;
+  if(format==='B'){
+    el('mc-tbl').innerHTML='<thead><tr><th>Client</th><th>Invoice ID</th><th>Date</th><th>Job Date</th><th>Terms</th><th class="r">Billed</th><th class="r">Balance</th><th>Status</th></tr></thead><tbody>'+
+      (sl.length?sl.map(r=>`<tr><td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.name}">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.invoiceId}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.jobDate||'—'}</td><td style="font-size:10px;color:var(--ink3)">${r.terms||'—'}</td><td class="r mono">${fmt(r.amt)}</td><td class="r mono" style="color:${r.paid?'var(--grn)':'var(--red)'}">${fmt(r.balance)}</td><td><span class="pill ${r.paid?'p-ok':'p-out'}">${r.paid?'Paid':'Owed'}</span></td></tr>`).join(''):`<tr><td colspan="8" class="no-data">No records</td></tr>`)+
+      '</tbody>';
+  }else{
+    el('mc-tbl').innerHTML='<thead><tr><th>Client</th><th>Reference</th><th>Date</th><th class="r">Amount</th><th>Status</th></tr></thead><tbody>'+
+      (sl.length?sl.map(r=>`<tr><td style="font-weight:500">${r.name}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.ref}</td><td class="mono" style="font-size:10px;color:var(--ink3)">${r.date}</td><td class="r mono">${fmt(r.amt)}</td><td style="font-size:10px;color:var(--ink3)">${r.status}</td></tr>`).join(''):`<tr><td colspan="5" class="no-data">No records</td></tr>`)+
+      '</tbody>';
+  }
+}
+
+// ── HISTORY ─────────────────────────────────────────────────
+function renderHistory() {
+  const ds=Object.values(DB.datasets||{}).sort((a,b)=>b.label.localeCompare(a.label));
+  el('hist-list').innerHTML=ds.length?ds.map(d=>{
+    const r=d.reconciliation||{};
+    const srcs=[];if(d.qbRaw)srcs.push('<span class="pill p-ok">QB</span>');if(d.mcRaw)srcs.push('<span class="pill p-mc">MC</span>');
+    return`<div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--card);cursor:pointer;transition:background .1s" onclick="showTab('recon',el('htab-recon'))" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--card)'">
+      <span style="font-family:var(--mono);font-size:12px;font-weight:600;min-width:140px">${d.label}</span>
+      <div style="display:flex;gap:4px">${srcs.join('')}</div>
+      ${r.matchedCount!=null?`<span class="pill p-ok" style="font-size:8px">${r.matchedCount} matched</span>`:''}
+      ${r.outCount?`<span class="pill p-out" style="font-size:8px">${r.outCount} outstanding</span>`:''}
+      ${(r.inQBnotMC||[]).length?`<span class="pill" style="background:var(--red-bg);color:var(--red);font-size:8px">${r.inQBnotMC.length} QB-only</span>`:''}
+      ${(r.inMCnotQB||[]).length?`<span class="pill p-mc" style="font-size:8px">${r.inMCnotQB.length} MC-only</span>`:''}
+      <span style="font-size:11px;color:var(--ink3);flex:1">${d.notes||''}</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--ink4)">${new Date(d.imported).toLocaleDateString()}</span>
+      <button onclick="event.stopPropagation();deleteDS('${d.label}')" style="background:none;border:none;cursor:pointer;color:var(--ink4);font-size:15px;padding:2px 6px">&#10005;</button>
+    </div>`;
+  }).join(''):`<div style="text-align:center;padding:3rem;color:var(--ink3);font-family:var(--mono);font-size:11px">No datasets loaded yet.</div>`;
+}
+function deleteDS(label){if(!confirm('Delete "'+label+'"?'))return;delete DB.datasets[label];dbSave();renderAll();renderHistory();}
+function clearAll(){if(!confirm('Delete ALL data?\n\nThis cannot be undone.'))return;DB={datasets:{}};dbSave();el('empty-state').style.display='flex';el('main-content').style.display='none';}
+
+// ── LOAD MODAL ──────────────────────────────────────────────
+const pending={qb:null,mc:null};
+const modes={qb:'file',mc:'file'};
+
+function setSrcMode(src, mode) {
+  modes[src]=mode;
+  el(src+'-mt-file').classList.toggle('act',mode==='file');
+  el(src+'-mt-paste').classList.toggle('act',mode==='paste');
+  el(src+'-file-zone').style.display=mode==='file'?'block':'none';
+  el(src+'-paste-zone').style.display=mode==='paste'?'block':'none';
+}
+
+function openLoad() {
+  pending.qb=null; pending.mc=null;
+  el('ld-err').style.display='none';
+  el('ld-label').value=''; el('ld-notes').value='';
+  el('ld-from').value=''; el('ld-to').value='';
+  el('ld-info').textContent='All transactions will be imported.';
+  ['qb','mc'].forEach(w=>{el(w+'-result').innerHTML='';resetDZ(w);setSrcMode(w,'file');if(el(w+'-paste'))el(w+'-paste').value='';});
+  el('modal-load').style.display='flex';
+}
+
+function resetDZ(w) {
+  const dz=el(w+'-dz'); if(!dz) return;
+  dz.classList.remove('drag');
+  const cfg={qb:{icon:'&#128196;',title:'Drop QB CSV here',sub:'AR Invoice List or Account Register'},mc:{icon:'&#128203;',title:'Drop MC CSV here',sub:'AR/Billing or Payments report'}};
+  const c=cfg[w];
+  dz.innerHTML=`<div class="dz-icon">${c.icon}</div><div class="dz-title">${c.title}</div><div class="dz-sub">${c.sub}</div>`;
+  dz.onclick=()=>el(w+'-fi').click();
+}
+
+function handleDrop(e, w) { e.preventDefault(); el(w+'-dz').classList.remove('drag'); const f=e.dataTransfer.files[0]; if(f) readFile(f,w); }
+function handleFile(inp, w) { const f=inp.files[0]; if(f) readFile(f,w); inp.value=''; }
+function previewPaste(w) { const t=(el(w+'-paste').value||'').trim(); if(t) processText(t,w,'pasted data'); }
+
+function readFile(file, w) {
+  el(w+'-dz').innerHTML=`<div class="dz-icon">&#8987;</div><div class="dz-title">Reading...</div><div class="dz-sub">${file.name}</div>`;
+  el(w+'-dz').onclick=null;
+  const r=new FileReader(); r.onload=e=>processText(e.target.result,w,file.name); r.readAsText(file);
+}
+
+function processText(text, w, filename) {
+  try {
+    const data = w==='qb' ? parseQB(text) : parseMC(text);
+    if (!data) { el(w+'-result').innerHTML=`<span class="parse-err">&#9888; Cannot parse — check file format</span>`; resetDZ(w); return; }
+    pending[w]={data,filename};
+    let summary='';
+    if(w==='qb') summary=`${data.invoices.length.toLocaleString()} invoices · ${fmt(data.totInvoiced)} billed`;
+    else summary=`${data.count.toLocaleString()} records · ${fmt(data.totalBilled)} billed`;
+    const dz=el(w+'-dz');
+    if(dz) dz.innerHTML=`<div class="dz-icon">&#9989;</div><div class="dz-title">${summary}</div><div class="dz-sub">${filename}</div>`;
+    el(w+'-result').innerHTML=`<span class="parse-ok">&#10003; Loaded successfully</span>`;
+  } catch(err) {
+    el(w+'-result').innerHTML=`<span class="parse-err">&#9888; Error: ${err.message}</span>`; resetDZ(w);
+  }
+}
+
+function confirmLoad() {
+  const label=(el('ld-label').value||'').trim();
+  if(!label){el('ld-err').textContent='Period label is required.';el('ld-err').style.display='block';return;}
+  ['qb','mc'].forEach(w=>{if(modes[w]==='paste'&&!pending[w]){const t=(el(w+'-paste').value||'').trim();if(t)processText(t,w,'pasted data');}});
+  if(!pending.qb&&!pending.mc){el('ld-err').textContent='At least one source is required.';el('ld-err').style.display='block';return;}
+  el('ld-err').style.display='none';
+
+  // Apply date range filter
+  let qb=pending.qb?.data||null, mc=pending.mc?.data||null;
+  const fDate=(rows,f)=>{const from=el('ld-from')?.value||'',to=el('ld-to')?.value||'';if(!from&&!to)return rows;return rows.filter(r=>{const d=r[f]||'';return(!from||d>=from)&&(!to||d<=to);});};
+  if(qb){qb={...qb,invoices:fDate(qb.invoices,'date'),payments:fDate(qb.payments||[],'date'),expenses:fDate(qb.expenses||[],'date'),deposits:fDate(qb.deposits||[],'date')};qb.totInvoiced=qb.invoices.reduce((s,i)=>s+i.amt,0);qb.totCollected=qb.invoices.reduce((s,i)=>s+(i.paid||0),0);}
+  if(mc){const fr=fDate(mc.records,'date');const bi={};fr.forEach(r=>{if(r.invoiceId)bi[r.invoiceId]=r;});mc={...mc,records:fr,byInvoice:bi,count:fr.length,totalBilled:fr.reduce((s,r)=>s+r.amt,0),totalCollected:fr.filter(r=>r.paid).reduce((s,r)=>s+r.amt,0),outstanding:fr.filter(r=>!r.paid).reduce((s,r)=>s+r.amt,0)};}
+
+  const rec=reconcile(qb,mc);
+  DB.datasets[label]={label,notes:el('ld-notes').value||'',imported:new Date().toISOString(),qbRaw:qb,mcRaw:mc,reconciliation:rec};
+  dbSave();
+  closeModal('load');
+  pending.qb=null; pending.mc=null;
+
+  // Set date range from data
+  const allDates=[];
+  if(qb)[...qb.invoices,...(qb.payments||[])].forEach(t=>{if(t.date)allDates.push(t.date);});
+  if(mc)mc.records.forEach(r=>{if(r.date)allDates.push(r.date);});
+  if(allDates.length){allDates.sort();el('df-from').value=allDates[0];el('df-to').value=allDates[allDates.length-1];}
+
+  populateMonthPicker(); updDateLbl();
+  el('empty-state').style.display='none';
+  el('main-content').style.display='block';
+  updHdrInfo(); renderAll();
+  showToast('&#10003; Loaded: '+label+(rec?` · ${rec.matchedCount} matched, ${rec.outCount} outstanding`+(rec.inQBnotMC.length?`, ${rec.inQBnotMC.length} QB-only`:'')+(rec.inMCnotQB.length?`, ${rec.inMCnotQB.length} MC-only`:''):''));
+}
+
+// ── EXPORT ──────────────────────────────────────────────────
+function exportExcel() {
+  const XLSX=window.XLSX; if(!XLSX){alert('Export not available.');return;}
+  const agg=getAgg();
+  const wb=XLSX.utils.book_new();
+  const addSheet=(name,rows)=>{if(rows.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),name);};
+  addSheet('QB-Only (Missing from MC)',agg.inQBnotMC.map(r=>({'Client':r.name,'Invoice #':r.num,'Date':r.date,'QB Amount':+r.amt.toFixed(2),'Open Balance':+(r.openBal||0).toFixed(2)})));
+  addSheet('MC-Only (Missing from QB)',agg.inMCnotQB.map(r=>({'Client':r.name,'Invoice ID':r.invoiceId||r.ref||'','Date':r.date,'MC Amount':+r.amt.toFixed(2),'Balance':+(r.balance||0).toFixed(2),'Paid':r.paid?'Yes':'No'})));
+  addSheet('Amount Mismatches',agg.amtMismatches.map(m=>({'Client':m.name,'Invoice #':m.num,'Date':m.date,'QB Amount':+m.qbAmt.toFixed(2),'MC Amount':+m.mcAmt.toFixed(2),'Difference':+m.diff.toFixed(2)})));
+  addSheet('Outstanding',agg.outstanding.map(r=>({'Client':r.name,'Invoice #':r.num,'Date':r.date,'Billed':+r.invoiceAmt.toFixed(2),'Owed':+(r.openBal||0).toFixed(2),'In MC':r.mcMatched?'Yes':'No'})));
+  addSheet('Matched',agg.matched.map(r=>({'Client':r.name,'Invoice #':r.num,'Date':r.date,'Amount':+r.invoiceAmt.toFixed(2),'Paid':+r.paidAmt.toFixed(2),'In MC':r.mcMatched?'Yes':'No'})));
+  if(!wb.SheetNames.length){alert('No data to export for the selected date range.');return;}
+  XLSX.writeFile(wb,'Eldredge_Recon_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+// ── UTILITIES ────────────────────────────────────────────────
+function populateMonthPicker() {
+  const sel=el('mo-pick'); if(!sel) return;
+  const mos=new Set();
+  Object.values(DB.datasets||{}).forEach(ds=>{
+    if(ds.qbRaw)ds.qbRaw.invoices.forEach(i=>{if(i.date&&i.date.length>=7)mos.add(i.date.slice(0,7));});
+    if(ds.mcRaw)ds.mcRaw.records.forEach(r=>{if(r.date&&r.date.length>=7)mos.add(r.date.slice(0,7));});
+  });
+  const sorted=[...mos].sort().reverse();
+  const mn=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  sel.innerHTML='<option value="">Month...</option>'+sorted.map(ym=>{const[y,m]=ym.split('-');return`<option value="${ym}">${mn[+m]} ${y}</option>`;}).join('');
+}
+
+function showToast(msg) {
+  let t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.style.cssText='position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#0f0f0f;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:12px;padding:10px 20px;border-radius:6px;z-index:9999;border:1px solid rgba(255,255,255,.15);box-shadow:0 4px 20px rgba(0,0,0,.3);transition:opacity .3s;pointer-events:none';document.body.appendChild(t);}
+  t.innerHTML=msg; t.style.opacity='1';
+  clearTimeout(t._timer); t._timer=setTimeout(()=>t.style.opacity='0',5000);
+}
+function closeModal(id){el('modal-'+id).style.display='none';}
+
+// Add paste event listeners after DOM ready
+document.addEventListener('DOMContentLoaded',()=>{
+  const qbp=el('qb-paste'); if(qbp) qbp.addEventListener('input',()=>previewPaste('qb'));
+  const mcp=el('mc-paste'); if(mcp) mcp.addEventListener('input',()=>previewPaste('mc'));
+});
+
+// ══════════════════════════════════════════════════════════════
+// INIT — must be last
+// ══════════════════════════════════════════════════════════════
+const stored=dbLoad();
+let DB;
+if (stored && stored.datasets) { DB=stored; }
+else { DB={datasets:{}}; dbSave(); }
+
+const has=Object.keys(DB.datasets||{}).length>0;
+el('empty-state').style.display=has?'none':'flex';
+el('main-content').style.display=has?'block':'none';
+if (has) { populateMonthPicker(); updDateLbl(); updHdrInfo(); renderAll(); }
+// Show current storage usage
+try {
+  const raw = localStorage.getItem(STORE);
+  if (raw) updStorageMeter(raw.length);
+} catch(e) {}
+thPicker(); updDateLbl(); updHdrInfo(); renderAll(); }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>

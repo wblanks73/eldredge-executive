@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eldredge Cleaning Financials</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0c0c0e;--s1:#141417;--s2:#1c1c21;--s3:#242428;
+  --b1:rgba(255,255,255,.055);--b2:rgba(255,255,255,.10);--b3:rgba(255,255,255,.18);
+  --tx:#edeae4;--t2:#9996a0;--t3:#5c5968;
+  --grn:#4f8ef7;--red:#f16b6b;--amb:#f5a623;--blu:#5b9cf6;--pur:#9b8afb;
+  --grn-d:rgba(79,142,247,.12);--red-d:rgba(241,107,107,.12);--amb-d:rgba(245,166,35,.12)
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--tx);font-family:'DM Mono',monospace;font-size:13px;line-height:1.6;min-height:100vh}
+.shell{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+.sidebar{background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.content{padding:2rem 2rem 4rem;max-width:1160px}
+.sb-header{padding:1.5rem 1.25rem 1rem}
+.sb-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:300;letter-spacing:-.01em}
+.sb-logo span{font-style:italic;color:var(--grn)}
+.sb-tagline{font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.nav-group{padding:0 .75rem;margin-bottom:1rem}
+.ngl{font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;padding:0 .5rem;margin-bottom:4px}
+.nb{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border-radius:8px;background:none;border:none;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;text-align:left;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nb:hover{background:var(--s2);color:var(--tx)}.nb.active{background:var(--s3);color:var(--tx)}
+.nb .ni{width:16px;text-align:center;flex-shrink:0}.nb .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sb-div{height:1px;background:var(--b1);margin:.5rem 1rem}
+.sb-foot{margin-top:auto;padding:1rem 1.25rem;border-top:1px solid var(--b1)}
+.add-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border-radius:8px;border:1px dashed var(--b2);background:none;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s}
+.add-btn:hover{border-color:var(--grn);color:var(--grn)}
+.page{display:none}.page.active{display:block}
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.75rem;gap:1rem;flex-wrap:wrap}
+.pt{font-family:'Fraunces',serif;font-size:26px;font-weight:300;letter-spacing:-.02em;line-height:1.2}
+.ps{font-size:11px;color:var(--t2);margin-top:3px}
+.pa{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--b2);background:none;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:var(--b3);color:var(--tx);background:var(--s2)}
+.btn.pri{background:var(--grn);border-color:var(--grn);color:#0a1628;font-weight:500}
+.btn.pri:hover{opacity:.9}
+.btn.dng{border-color:rgba(241,107,107,.3);color:var(--red)}
+.btn.dng:hover{background:var(--red-d);border-color:var(--red)}
+.btn.exp{border-color:rgba(79,142,247,.4);color:var(--grn)}
+.btn.exp:hover{background:var(--grn-d);border-color:var(--grn)}
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.mc{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:1rem 1.1rem}
+.mc .lbl{font-size:10px;color:var(--t2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+.mc .val{font-size:22px;font-weight:500;line-height:1.1;font-family:'Fraunces',serif}
+.mc .val.g{color:var(--grn)}.mc .val.r{color:var(--red)}.mc .val.b{color:var(--blu)}
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--b1);padding-bottom:0}
+.tab{padding:6px 14px;border-radius:6px 6px 0 0;background:none;border:none;border-bottom:2px solid transparent;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s;margin-bottom:-1px}
+.tab:hover{color:var(--tx)}.tab.active{color:var(--tx);border-bottom-color:var(--grn)}
+/* TRANSACTION TABLE */
+.tc{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.tc input,.tc select{background:var(--s2);border:1px solid var(--b2);border-radius:6px;color:var(--tx);font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;outline:none;transition:border-color .15s}
+.tc input{min-width:180px}.tc input:focus,.tc select:focus{border-color:var(--b3)}
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--b1);background:var(--s1)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{font-size:10px;color:var(--t2);letter-spacing:.08em;padding:10px 12px;text-align:left;border-bottom:1px solid var(--b1);font-weight:400;white-space:nowrap}
+thead th.r{text-align:right}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--b1);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.018);cursor:pointer}
+.mono{font-family:'DM Mono',monospace}
+.r{text-align:right}
+.pos{color:var(--grn)}.neg{color:var(--red)}
+/* PAGINATION */
+.pag{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--b1);font-size:11px;color:var(--t2)}
+.pag-btns{display:flex;gap:6px}
+.pbtn{background:var(--s2);border:1px solid var(--b2);border-radius:6px;padding:4px 12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--t2);transition:all .15s}
+.pbtn:hover{border-color:var(--b3);color:var(--tx)}.pbtn:disabled{opacity:.3;cursor:default}
+/* PILL / BADGE */
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.pill-grn{background:var(--grn-d);color:var(--grn)}
+.pill-red{background:var(--red-d);color:var(--red)}
+.pill-amb{background:var(--amb-d);color:var(--amb)}
+.pill-pur{background:rgba(155,138,251,.12);color:var(--pur)}
+/* CHART */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem}
+.chart-box{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:1.25rem}
+.chart-title{font-size:11px;color:var(--t2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:.75rem}
+.ch-wrap{position:relative;height:200px}
+.ch-wrap-lg{height:240px}
+/* LEGEND */
+.dleg{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.dleg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2)}
+.dleg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* CARDS - account overview */
+.acard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:2rem}
+.acard{background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.acard:hover{border-color:var(--b2);background:var(--s2);transform:translateY(-1px)}
+.acard-acts{position:absolute;top:10px;right:10px;display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.acard:hover .acard-acts{opacity:1}
+.acard-acts button{background:var(--s3);border:1px solid var(--b2);border-radius:5px;color:var(--t2);font-size:11px;padding:2px 7px;cursor:pointer}
+.acard-acts button:hover{color:var(--tx)}
+.acard-name{font-size:13px;font-weight:500;margin-bottom:2px;margin-top:6px}
+.acard-type{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+.acard-bal{font-family:'Fraunces',serif;font-size:24px;margin-top:.75rem;line-height:1}
+/* ACCOUNT DETAIL */
+.ap-back{display:inline-flex;align-items:center;gap:5px;color:var(--t2);font-size:12px;cursor:pointer;background:none;border:none;padding:0;margin-bottom:1rem;transition:color .15s}
+.ap-back:hover{color:var(--tx)}
+.alert{background:var(--red-d);border:1px solid rgba(241,107,107,.25);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:1rem}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:14px;width:min(480px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);padding:1.75rem}
+.modal h2{font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:.4rem}
+.modal p{font-size:12px;color:var(--t2);margin-bottom:1.25rem;line-height:1.7}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:7px;color:var(--tx);font-family:'DM Mono',monospace;font-size:12px;padding:9px 11px;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--b3)}
+.field textarea{min-height:80px;resize:vertical}
+.mact{display:flex;justify-content:flex-end;gap:8px;margin-top:1.5rem}
+/* DZ */
+.dz{border:2px dashed var(--b2);border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:.75rem}
+.dz:hover,.dz.drag{border-color:var(--grn);background:rgba(79,142,247,.05)}
+.dz-icon{font-size:28px;margin-bottom:.4rem}
+.dz p{font-size:11px;color:var(--t2);margin-top:4px}
+/* COLOR PICKER */
+.cpick{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+.cpick span{width:22px;height:22px;border-radius:50%;cursor:pointer;transition:transform .15s;border:2px solid transparent}
+.cpick span:hover,.cpick span.sel{transform:scale(1.2);border-color:#fff}
+/* IMPORT TABS */
+.import-tabs{display:flex;gap:4px;margin-bottom:14px}
+.import-tab{padding:5px 14px;border-radius:6px;border:1px solid var(--b1);background:none;color:var(--t2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+.import-tab:hover{border-color:var(--b2);color:var(--tx)}.import-tab.active{background:var(--s3);border-color:var(--b2);color:var(--tx)}
+/* PASTE */
+.paste-area{width:100%;min-height:180px;background:var(--s2);border:1.5px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'DM Mono',monospace;font-size:11px;padding:12px;outline:none;resize:vertical;line-height:1.7}
+.paste-area:focus{border-color:var(--b3)}
+.parse-preview{margin-top:8px;font-size:11px}.parse-ok{color:var(--grn)}.parse-err{color:var(--red)}
+/* RECONCILE */
+.rec-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--b1);font-size:12px;transition:background .1s}
+.rec-row:last-child{border-bottom:none}.rec-row:hover{background:var(--s2)}
+.rec-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec-actions{display:flex;gap:4px;flex-shrink:0}
+.flag-btn{background:none;border:1px solid var(--b2);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--t2);cursor:pointer;transition:all .15s}
+.flag-btn.ok{border-color:rgba(79,142,247,.4);color:var(--grn)}
+.flag-btn.flag{border-color:rgba(241,107,107,.4);color:var(--red)}
+.flag-btn:hover{border-color:var(--b3);color:var(--tx)}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+/* EMPTY */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;text-align:center;color:var(--t2)}
+.empty-icon{font-size:40px;opacity:.3;margin-bottom:1rem}
+.empty-title{font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:.4rem}
+.empty-sub{font-size:12px;color:var(--t3);max-width:280px;line-height:1.8}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.sidebar{position:static;height:auto}.metrics{grid-template-columns:1fr 1fr}.chart-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">Eldredge <span>Clean</span></div>
+    <div class="sb-tagline">Financial Intelligence</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="ngl">Dashboard</div>
+    <button class="nb active" id="nav-overview" onclick="nav('overview',this)">
+      <span class="ni">◈</span> Overview
+    </button>
+    <button class="nb" id="nav-all" onclick="nav('all',this)">
+      <span class="ni">☰</span> All Transactions
+    </button>
+    <button class="nb" id="nav-cats" onclick="nav('cats',this)">
+      <span class="ni">◎</span> Categories
+    </button>
+    <button class="nb" id="nav-merchants" onclick="nav('merchants',this)">
+      <span class="ni">⊞</span> Merchants
+    </button>
+    <button class="nb" id="nav-rules" onclick="nav('rules',this)">
+      <span class="ni">⌘</span> Category Rules
+    </button>
+    <button class="nb" id="nav-reconcile" onclick="nav('reconcile',this)">
+      <span class="ni">⇌</span> Reconcile
+    </button>
+    <button class="nb" id="nav-insights" onclick="nav('insights',this)">
+      <span class="ni">◉</span> Insights
+    </button>
+  </div>
+
+  <div class="sb-div"></div>
+
+  <div class="nav-group">
+    <div class="ngl">Accounts</div>
+    <div id="acct-nav"></div>
+  </div>
+
+  <div id="storage-meter" style="padding:.5rem 1.25rem 0;min-height:18px"></div>
+  <div class="sb-foot">
+    <button class="add-btn" onclick="openAddAccount()">＋ Add Account</button>
+    <button class="add-btn" onclick="pruneOldData()" style="margin-top:6px;font-size:10px;opacity:.6">⊘ Free up space</button>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- ── OVERVIEW ── -->
+  <div class="page active" id="page-overview">
+    <div class="ph">
+      <div><div class="pt">Financial Overview</div><div class="ps">All accounts · all time</div></div>
+      <div class="pa">
+        <button class="btn" onclick="openImport()">↑ Import Statement</button>
+        <button class="btn pri" onclick="openAddAccount()">＋ Account</button>
+      </div>
+    </div>
+    <div id="ov-empty" class="empty-state" style="display:none">
+      <div class="empty-icon">🏦</div>
+      <div class="empty-title">No accounts yet</div>
+      <div class="empty-sub">Add a bank account to start tracking your cash flow</div>
+      <button class="btn pri" onclick="openAddAccount()" style="margin-top:1rem">＋ Add Account</button>
+    </div>
+    <div id="ov-body">
+      <div class="metrics" id="ov-metrics"></div>
+      <div class="acard-grid" id="ov-acards"></div>
+      <div class="chart-row">
+        <div class="chart-box"><div class="chart-title">Net cash flow by month</div><div class="ch-wrap ch-wrap-lg"><canvas id="ch-ov-flow"></canvas></div></div>
+        <div class="chart-box"><div class="chart-title">Spending by category</div><div class="ch-wrap ch-wrap-lg"><canvas id="ch-ov-donut"></canvas></div><div class="dleg" id="ov-dleg"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ALL TRANSACTIONS ── -->
+  <div class="page" id="page-all">
+    <div class="ph">
+      <div><div class="pt">All Transactions</div><div class="ps" id="all-sub"></div></div>
+      <div class="pa">
+        <button class="btn exp" onclick="exportCurrentView('all')">↓ Export</button>
+        <button class="btn" onclick="openImport()">↑ Import</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="setTab(this,'all','all')">All</button>
+      <button class="tab" onclick="setTab(this,'all','deposits')">Deposits</button>
+      <button class="tab" onclick="setTab(this,'all','withdrawals')">Withdrawals</button>
+    </div>
+    <div class="tc">
+      <input type="text" id="all-search" placeholder="Search transactions…" oninput="renderTxnTable('all')">
+      <select id="all-acct" onchange="renderTxnTable('all')"><option value="">All accounts</option></select>
+      <select id="all-cat" onchange="renderTxnTable('all')"><option value="">All categories</option></select>
+      <select id="all-sort" onchange="renderTxnTable('all')">
+        <option value="date-desc">Newest</option>
+        <option value="date-asc">Oldest</option>
+        <option value="amt-desc">Largest</option>
+        <option value="desc-asc">A → Z</option>
+        <option value="desc-desc">Z → A</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Account</th><th class="r">Amount</th></tr></thead>
+      <tbody id="all-tbody"></tbody></table>
+      <div class="pag"><span id="all-pi"></span><div class="pag-btns"><button class="pbtn" id="all-prev" onclick="pgStep('all',-1)">← Prev</button><button class="pbtn" id="all-next" onclick="pgStep('all',1)">Next →</button></div></div>
+    </div>
+  </div>
+
+  <!-- ── ACCOUNT DETAIL ── -->
+  <div class="page" id="page-ap">
+    <button class="ap-back" onclick="nav('overview',document.getElementById('nav-overview'))">← All Accounts</button>
+    <div class="ph">
+      <div><div class="pt" id="ap-name">Account</div><div class="ps" id="ap-type"></div></div>
+      <div class="pa">
+        <button class="btn exp" onclick="exportCurrentView('ap')">↓ Export View</button>
+        <button class="btn" onclick="openImportCurrent()">↑ Import</button>
+        <button class="btn dng" onclick="deleteCurrentAcct()">× Delete</button>
+      </div>
+    </div>
+    <div id="ap-alert"></div>
+    <div class="metrics" id="ap-metrics"></div>
+    <div class="chart-row">
+      <div class="chart-box"><div class="chart-title">Cash flow</div><div class="ch-wrap"><canvas id="ch-ap-flow"></canvas></div></div>
+      <div class="chart-box"><div class="chart-title">By category</div><div class="ch-wrap"><canvas id="ch-ap-donut"></canvas></div><div class="dleg" id="ap-dleg"></div></div>
+    </div>
+    <div class="chart-box" style="margin-bottom:1.5rem"><div class="chart-title">Top spending categories</div><div id="ap-bars"></div></div>
+    <div class="tabs">
+      <button class="tab active" onclick="setTab(this,'ap','all')">All</button>
+      <button class="tab" onclick="setTab(this,'ap','deposits')">Deposits</button>
+      <button class="tab" onclick="setTab(this,'ap','withdrawals')">Withdrawals</button>
+    </div>
+    <div class="tc">
+      <input type="text" id="ap-search" placeholder="Search…" oninput="renderTxnTable('ap')">
+      <select id="ap-cat" onchange="renderTxnTable('ap')"><option value="">All categories</option></select>
+      <select id="ap-sort" onchange="renderTxnTable('ap')">
+        <option value="date-desc">Newest</option>
+        <option value="date-asc">Oldest</option>
+        <option value="amt-desc">Largest</option>
+        <option value="desc-asc">A → Z</option>
+        <option value="desc-desc">Z → A</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th class="r">Amount</th></tr></thead>
+      <tbody id="ap-tbody"></tbody></table>
+      <div class="pag"><span id="ap-pi"></span><div class="pag-btns"><button class="pbtn" id="ap-prev" onclick="pgStep('ap',-1)">← Prev</button><button class="pbtn" id="ap-next" onclick="pgStep('ap',1)">Next →</button></div></div>
+    </div>
+  </div>
+
+  <!-- ── CATEGORIES ── -->
+  <div class="page" id="page-cats">
+    <div class="ph"><div><div class="pt">Categories</div><div class="ps">Spending breakdown</div></div></div>
+    <div id="cats-body"></div>
+  </div>
+
+  <!-- ── MERCHANTS ── -->
+  <div class="page" id="page-merchants">
+    <div class="ph"><div><div class="pt">Merchants</div><div class="ps">Top vendors by spend</div></div></div>
+    <div id="merchants-body"></div>
+  </div>
+
+  <!-- ── CATEGORY RULES ── -->
+  <div class="page" id="page-rules">
+    <div class="ph">
+      <div><div class="pt">Category Rules</div><div class="ps">Keyword → category mappings applied to all transactions automatically</div></div>
+      <div class="pa">
+        <button class="btn pri" onclick="openAddRule()">＋ Add Rule</button>
+        <button class="btn" onclick="reapplyAllRules()" id="reapply-btn">↺ Re-apply to All</button>
+      </div>
+    </div>
+    <div id="rules-body"></div>
+  </div>
+
+  <!-- ── RECONCILE ── -->
+  <div class="page" id="page-reconcile">
+    <div class="ph">
+      <div><div class="pt">Cross-Account Reconcile</div><div class="ps">Vendors appearing on multiple accounts</div></div>
+      <div class="pa"><button class="btn exp" onclick="exportReconcileCSV()">↓ Export CSV</button></div>
+    </div>
+    <div id="rec-body"></div>
+  </div>
+
+  <!-- ── INSIGHTS ── -->
+  <div class="page" id="page-insights">
+    <div class="ph"><div><div class="pt">Insights</div><div class="ps">Patterns &amp; anomalies</div></div></div>
+    <div id="insights-body"></div>
+  </div>
+
+  <!-- ── MANAGE ── -->
+  <div class="page" id="page-manage">
+    <div class="ph">
+      <div><div class="pt" id="manage-title">Account</div><div class="ps" id="manage-sub"></div></div>
+      <div class="pa"><button class="btn dng" onclick="deleteCurrentAcct()">× Delete Account</button></div>
+    </div>
+    <div id="manage-body"></div>
+  </div>
+
+</div><!-- /content -->
+</div><!-- /shell -->
+
+<!-- ══ IMPORT MODAL ══ -->
+<div id="modal-import" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('import')">
+  <div class="modal" style="width:min(560px,95vw)">
+    <h2>Import Statement</h2>
+    <p>Upload a CSV file, or paste directly from your online banking — no download needed.</p>
+    <div class="field"><label>Account</label><select id="import-acct-sel"></select></div>
+    <div class="import-tabs">
+      <button class="import-tab active" id="itab-csv" onclick="setImportMode('csv')">📄 Upload CSV</button>
+      <button class="import-tab" id="itab-paste" onclick="setImportMode('paste')">📋 Paste from Bank</button>
+    </div>
+    <div id="import-csv-mode">
+      <div class="dz" id="dz" onclick="document.getElementById('csv-file').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="handleDrop(event)">
+        <div class="dz-icon">📂</div>
+        <strong>Drop CSV here or click to browse</strong>
+        <p>Supports most bank export formats</p>
+      </div>
+      <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleFileInput(this)">
+      <div id="import-preview" style="margin-top:10px"></div>
+    </div>
+    <div id="import-paste-mode" style="display:none">
+      <div style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.7">
+        Go to your online banking, select all transaction rows, copy (Ctrl+C), then paste below.<br>
+        Works with PNC, Chase, Wells Fargo, and most US banks.
+      </div>
+      <textarea class="paste-area" id="paste-text"
+        placeholder="Paste bank transactions here.&#10;&#10;Each transaction looks like:&#10;06/25/2026&#10;ONLINE TRANSFER FROM XXXXX5589&#10;++$14,500.00&#10;$14,667.66&#10;&#10;Supports ++ credits and -- debits." oninput="previewPaste()"></textarea>
+      <div id="paste-preview" class="parse-preview"></div>
+    </div>
+    <div class="mact">
+      <button class="btn" onclick="closeModal('import')">Cancel</button>
+      <button class="btn pri" id="import-ok" style="display:none" onclick="confirmImport()">Import Transactions</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD ACCOUNT MODAL ══ -->
+<div id="modal-acct" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('acct')">
+  <div class="modal">
+    <h2>Add Account</h2>
+    <p>Add a bank account, credit card, or other financial account to track.</p>
+    <div class="field"><label>Account Name *</label><input type="text" id="acct-name" placeholder="e.g. PNC Checking – Operating"></div>
+    <div class="field"><label>Account Type</label>
+      <select id="acct-type">
+        <option value="checking">Checking</option>
+        <option value="savings">Savings</option>
+        <option value="credit">Credit Card</option>
+        <option value="loan">Loan</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Color</label><div class="cpick" id="cpick"></div></div>
+    <div class="mact">
+      <button class="btn" onclick="closeModal('acct')">Cancel</button>
+      <button class="btn pri" onclick="saveNewAccount()">Add Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD RULE MODAL ══ -->
+<div id="modal-rule" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('rule')">
+  <div class="modal" style="max-width:440px">
+    <h2 id="rule-modal-title">Add Category Rule</h2>
+    <p>Any transaction whose description contains this keyword will be assigned the selected category — both new imports and existing transactions.</p>
+    <input type="hidden" id="rule-edit-id">
+    <div class="field">
+      <label>Keyword (case-insensitive, partial match)</label>
+      <input type="text" id="rule-keyword" placeholder="e.g. gusto, home depot, peco, amazon" oninput="testRule()">
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <select id="rule-cat">
+        <option value="payroll">👥 Payroll</option>
+        <option value="supplies">🧴 Supplies</option>
+        <option value="fuel">⛽ Fuel</option>
+        <option value="insurance">🛡 Insurance</option>
+        <option value="software">💻 Software</option>
+        <option value="utilities">⚡ Utilities</option>
+        <option value="rent">🏢 Rent/Lease</option>
+        <option value="marketing">📢 Marketing</option>
+        <option value="equipment">🔧 Equipment</option>
+        <option value="fees">🏦 Bank/Fees</option>
+        <option value="taxes">📋 Taxes</option>
+        <option value="revenue">💰 Revenue</option>
+        <option value="transfer">↔ Transfers</option>
+        <option value="other">📌 Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Type (optional)</label>
+      <select id="rule-type">
+        <option value="">Any (deposits and withdrawals)</option>
+        <option value="deposit">Deposits only (amount &gt; 0)</option>
+        <option value="withdrawal">Withdrawals only (amount &lt; 0)</option>
+      </select>
+    </div>
+    <div id="rule-test-result" style="min-height:36px;margin-top:4px;font-size:12px;color:var(--t2);padding:8px 10px;background:var(--s2);border-radius:6px;display:none"></div>
+    <div class="mact">
+      <button class="btn" onclick="closeModal('rule')">Cancel</button>
+      <button class="btn pri" onclick="saveRule()">Save Rule</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NOTE MODAL ══ -->
+<div id="modal-note" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal('note')">
+  <div class="modal" style="max-width:400px">
+    <h2>Reconcile Note</h2>
+    <p id="note-vendor-label" style="color:var(--t2)"></p>
+    <div class="field"><label>Note</label><textarea id="note-text" rows="3"></textarea>
+    </div>
+    <div class="mact">
+      <button class="btn" onclick="closeModal('note')">Cancel</button>
+      <button class="btn pri" onclick="saveNote()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// ALL FUNCTIONS BEFORE INIT
+// ══════════════════════════════════════════════════════════════
+const STORE = 'eldredge_fin_v2';
+const PG    = 150;
+const COLORS = ['#4f8ef7','#f16b6b','#f5a623','#9b8afb','#4ecdc4','#f093fb','#56c596','#ffd93d','#6c8ebf','#d98c8c'];
+const CATS = {
+  payroll:    {label:'Payroll',       icon:'👥'},
+  supplies:   {label:'Supplies',      icon:'🧴'},
+  fuel:       {label:'Fuel',          icon:'⛽'},
+  insurance:  {label:'Insurance',     icon:'🛡'},
+  software:   {label:'Software',      icon:'💻'},
+  utilities:  {label:'Utilities',     icon:'⚡'},
+  rent:       {label:'Rent/Lease',    icon:'🏢'},
+  marketing:  {label:'Marketing',     icon:'📢'},
+  equipment:  {label:'Equipment',     icon:'🔧'},
+  fees:       {label:'Bank/Fees',     icon:'🏦'},
+  taxes:      {label:'Taxes',         icon:'📋'},
+  revenue:    {label:'Revenue',       icon:'💰'},
+  transfer:   {label:'Transfers',     icon:'↔'},
+  other:      {label:'Other',         icon:'📌'},
+};
+
+// ── STORAGE ─────────────────────────────────────────────────
+function dbLoad(){try{return JSON.parse(localStorage.getItem(STORE))||null;}catch(e){return null;}}
+function dbSave() {
+  try {
+    // Slim transactions before saving: drop null/false fields, keep only what display needs
+    const lean = {
+      ...DB,
+      transactions: DB.transactions.map(t => {
+        const s = { id:t.id, accountId:t.accountId, date:t.date, desc:t.desc, amount:t.amount, cat_key:t.cat_key, cat_label:t.cat_label };
+        if (t.cat_manual) s.cat_manual = true;  // only store when true
+        return s;
+      }),
+    };
+    const payload = JSON.stringify(lean);
+    // Warn at 80% before hitting the hard limit
+    if (payload.length > 4096 * 1024) {
+      const kb = Math.round(payload.length / 1024);
+      if (!confirm(`Storage is almost full (${kb} KB of 5 MB used).\n\nSave anyway? Consider exporting and deleting old transactions first.`)) return;
+    }
+    localStorage.setItem(STORE, payload);
+    updStorageMeter(payload.length);
+  } catch(e) {
+    alert('Storage is full.\n\nExport your data using the ↓ Export button, then delete some transactions or accounts to free up space.');
+  }
+}
+
+function updStorageMeter(byteLen) {
+  const kb = byteLen ? byteLen / 1024 : 0;
+  const m = document.getElementById('storage-meter');
+  if (!m) return;
+  const pct = Math.min(100, kb / 5120 * 100);
+  const col = pct > 80 ? '#f16b6b' : pct > 60 ? '#f5a623' : '#4f8ef7';
+  const warn = pct > 80 ? ' ⚠' : '';
+  m.title = `${kb.toFixed(0)} KB of ~5 MB used`;
+  m.innerHTML = `<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:${col};opacity:.7;cursor:default" title="${kb.toFixed(0)} KB / ~5 MB">
+    <div style="width:48px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden">
+      <div style="width:${pct.toFixed(1)}%;height:100%;background:${col};border-radius:2px"></div>
+    </div>
+    ${kb.toFixed(0)} KB${warn}
+  </div>`;
+}
+
+// ── HELPERS ─────────────────────────────────────────────────
+const el = id => document.getElementById(id);
+function fmt(n, abs) {
+  const v = abs ? Math.abs(n) : n;
+  return '$' + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtK(n){const v=Math.abs(n);return '$'+(v>=1000?(v/1000).toFixed(1)+'k':v.toFixed(0));}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function getAcct(id){return DB.accounts.find(a=>a.id===id);}
+function getTxns(acctId){return acctId?DB.transactions.filter(t=>t.accountId===acctId):[...DB.transactions];}
+function cleanDesc(s){return(s||'').replace(/\s+/g,' ').trim().slice(0,50);}
+function normVendor(s){return(s||'').toLowerCase().replace(/\s+/g,' ').replace(/[^a-z0-9 ]/g,'').trim().split(' ').slice(0,3).join(' ');}
+
+// ── CATEGORIZE ───────────────────────────────────────────────
+// ── CATEGORIZE ──────────────────────────────────────────────
+// User rules (DB.rules) take priority over built-in keyword matching.
+// Each rule: { id, keyword, cat_key, type:'deposit'|'withdrawal'|'' }
+function categorize(desc, amount) {
+  const d = (desc||'').toLowerCase();
+  // 1. User-defined rules — checked first, in order
+  const rules = DB ? (DB.rules||[]) : [];
+  for (const rule of rules) {
+    if (!rule.keyword) continue;
+    if (!d.includes(rule.keyword.toLowerCase())) continue;
+    if (rule.type==='deposit'    && !(amount>0))  continue;
+    if (rule.type==='withdrawal' && !(amount<0))  continue;
+    const cat = CATS[rule.cat_key];
+    return { cat_key: rule.cat_key, cat_label: cat ? cat.label : rule.cat_key, cat_rule: rule.id };
+  }
+  // 2. Built-in keyword patterns
+  if(/payroll|gusto|adp|salary|wages|direct dep/.test(d))        return{cat_key:'payroll',   cat_label:'Payroll'};
+  if(/supplies|janitorial|mop|vacuum|deterg/.test(d))            return{cat_key:'supplies',  cat_label:'Supplies'};
+  if(/fuel|gas station|exxon|shell|bp |chevron|marathon/.test(d))return{cat_key:'fuel',      cat_label:'Fuel'};
+  if(/insurance|insur|policy|premium/.test(d))                   return{cat_key:'insurance', cat_label:'Insurance'};
+  if(/software|saas|subscription|adobe|microsoft/.test(d))       return{cat_key:'software',  cat_label:'Software'};
+  if(/electric|water|utility|peco|ppl |comcast|verizon/.test(d)) return{cat_key:'utilities', cat_label:'Utilities'};
+  if(/rent|lease|landlord/.test(d))                              return{cat_key:'rent',      cat_label:'Rent/Lease'};
+  if(/marketing|advertis|facebook|google ads|meta/.test(d))      return{cat_key:'marketing', cat_label:'Marketing'};
+  if(/equipment|tools|home depot|lowes/.test(d))                 return{cat_key:'equipment', cat_label:'Equipment'};
+  if(/fee|overdraft|service chg|monthly chg/.test(d))            return{cat_key:'fees',      cat_label:'Bank/Fees'};
+  if(/irs |tax|pa dept of rev/.test(d))                          return{cat_key:'taxes',     cat_label:'Taxes'};
+  if(/transfer|zelle|wire|ach from/.test(d))                     return{cat_key:'transfer',  cat_label:'Transfers'};
+  if(/payment received|revenue|invoice/.test(d))                 return{cat_key:'revenue',   cat_label:'Revenue'};
+  return{cat_key:'other',cat_label:'Other'};
+}
+
+// ── CHARTS ──────────────────────────────────────────────────
+const charts = {};
+function mkChart(id,type,data,opts){
+  if(charts[id])charts[id].destroy();
+  const c=el(id);if(!c)return;
+  charts[id]=new Chart(c,{type,data,options:{responsive:true,maintainAspectRatio:false,...opts}});
+}
+
+// ── PAGE STATE ───────────────────────────────────────────────
+let currentAcctId = null;
+const pageState = {
+  all: {tab:'all', page:1},
+  ap:  {tab:'all', page:1},
+};
+
+function nav(page, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  el('page-'+page)?.classList.add('active');
+  if(btn)btn.classList.add('active');
+  refresh(page);
+}
+
+function showAcctPage(acctId) {
+  currentAcctId = acctId;
+  const a = getAcct(acctId);
+  if(!a)return;
+  el('ap-name').textContent = a.name;
+  el('ap-type').textContent = a.type||'Account';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  el('page-ap').classList.add('active');
+  // Highlight sidebar nav
+  const nb=el('nav-acct-'+acctId);if(nb)nb.classList.add('active');
+  pageState.ap={tab:'all',page:1};
+  // Reset tab buttons
+  el('page-ap').querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+  renderAcctDetail(acctId);
+}
+
+function setTab(btn, ctx, tab) {
+  pageState[ctx].tab = tab;
+  pageState[ctx].page = 1;
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderTxnTable(ctx);
+}
+
+function pgStep(ctx, dir) {
+  pageState[ctx].page = Math.max(1, pageState[ctx].page+dir);
+  renderTxnPage(ctx, getFiltered(ctx));
+}
+
+function refresh(page) {
+  const p = page||'overview';
+  if(p==='overview') renderOverview();
+  if(p==='all') {populateAllFilters();renderTxnTable('all');}
+  if(p==='cats') renderCategories();
+  if(p==='merchants') renderMerchants();
+  if(p==='rules') renderRules();
+  if(p==='reconcile') renderReconcile();
+  if(p==='insights') renderInsights();
+}
+
+// ── OVERVIEW ────────────────────────────────────────────────
+function renderOverview() {
+  const has = DB.accounts.length > 0;
+  el('ov-empty').style.display = has?'none':'flex';
+  el('ov-body').style.display  = has?'block':'none';
+  if(!has)return;
+
+  const allTxns = DB.transactions;
+  const inflow  = allTxns.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+  const outflow = allTxns.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const net     = inflow-outflow;
+  el('ov-metrics').innerHTML=`
+    <div class="mc"><div class="lbl">Total Inflow</div><div class="val g">${fmt(inflow)}</div></div>
+    <div class="mc"><div class="lbl">Total Outflow</div><div class="val r">${fmt(outflow)}</div></div>
+    <div class="mc"><div class="lbl">Net Cash Flow</div><div class="val ${net>=0?'g':'r'}">${fmt(net)}</div></div>
+    <div class="mc"><div class="lbl">Accounts</div><div class="val b">${DB.accounts.length}</div></div>`;
+
+  el('ov-acards').innerHTML=DB.accounts.map(a=>{
+    const txns=getTxns(a.id),net=txns.reduce((s,t)=>s+t.amount,0);
+    const last=txns.map(t=>t.date).sort().pop()||'—';
+    return`<div class="acard" onclick="showAcctPage('${a.id}')">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${a.color}"></div>
+      <div class="acard-acts">
+        <button onclick="event.stopPropagation();openImportFor('${a.id}')">↑</button>
+        <button onclick="event.stopPropagation();deleteAcct('${a.id}')">×</button>
+      </div>
+      <div class="acard-type">${a.type||'Account'}</div>
+      <div class="acard-name">${a.name}</div>
+      <div class="acard-bal ${net>=0?'pos':'neg'}">${fmt(net)}</div>
+      <div style="font-size:10px;color:var(--t3);margin-top:.5rem">Last: ${last}</div>
+    </div>`;
+  }).join('');
+
+  renderFlowChart('ch-ov-flow',null);
+  renderDonut('ch-ov-donut','ov-dleg',null);
+}
+
+// ── ACCOUNT DETAIL ───────────────────────────────────────────
+function renderAcctDetail(acctId) {
+  const txns   = getTxns(acctId);
+  const inflow = txns.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+  const outflow= txns.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const net    = inflow-outflow;
+  const od     = txns.filter(t=>t.cat_key==='fees'&&(t.desc||'').toLowerCase().includes('overdraft'));
+  el('ap-alert').innerHTML=od.length?`<div class="alert">⚠ ${od.length} overdraft fee${od.length!==1?'s':''} — ${fmt(od.reduce((s,t)=>s+Math.abs(t.amount),0),true)} in fees</div>`:'';
+  el('ap-metrics').innerHTML=`
+    <div class="mc"><div class="lbl">Total In</div><div class="val g">${fmt(inflow)}</div></div>
+    <div class="mc"><div class="lbl">Total Out</div><div class="val r">${fmt(outflow)}</div></div>
+    <div class="mc"><div class="lbl">Net Flow</div><div class="val ${net>=0?'g':'r'}">${fmt(net)}</div></div>
+    <div class="mc"><div class="lbl">Transactions</div><div class="val b">${txns.length}</div></div>`;
+  renderFlowChart('ch-ap-flow',acctId);
+  renderDonut('ch-ap-donut','ap-dleg',acctId);
+  renderBars('ap-bars',acctId);
+  // Populate cat filter
+  const cats=[...new Set(txns.map(t=>t.cat_key))];
+  el('ap-cat').innerHTML='<option value="">All categories</option>'+cats.map(k=>{const t=txns.find(x=>x.cat_key===k);return`<option value="${k}">${t?t.cat_label:k}</option>`;}).join('');
+  pageState.ap={tab:'all',page:1};
+  renderTxnTable('ap');
+}
+
+// ── CHART RENDERERS ─────────────────────────────────────────
+function renderFlowChart(canvasId, acctId) {
+  const txns = getTxns(acctId);
+  const byMonth = {};
+  txns.forEach(t=>{
+    const ym=t.date?.slice(0,7);if(!ym)return;
+    if(!byMonth[ym])byMonth[ym]={in:0,out:0};
+    if(t.amount>0)byMonth[ym].in+=t.amount;
+    else byMonth[ym].out+=Math.abs(t.amount);
+  });
+  const keys=Object.keys(byMonth).sort();
+  const CB={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#111',callbacks:{label:c=>' '+fmt(c.raw)}}},scales:{x:{ticks:{color:'#666',font:{size:9}},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#666',font:{size:9},callback:v=>fmtK(v)},grid:{color:'rgba(255,255,255,.03)'}}}};
+  mkChart(canvasId,'bar',{
+    labels:keys,
+    datasets:[
+      {label:'In', data:keys.map(k=>byMonth[k].in),  backgroundColor:'rgba(79,142,247,.5)',borderColor:'var(--grn)',borderWidth:1,borderRadius:2},
+      {label:'Out',data:keys.map(k=>byMonth[k].out), backgroundColor:'rgba(241,107,107,.4)',borderColor:'var(--red)',borderWidth:1,borderRadius:2}
+    ]
+  },{...CB,plugins:{...CB.plugins,legend:{display:true,labels:{color:'#888',font:{size:10},boxWidth:8,padding:10}}}});
+}
+
+function renderDonut(canvasId, legId, acctId) {
+  const txns=getTxns(acctId).filter(t=>t.amount<0);
+  const catTotals={};
+  txns.forEach(t=>{const k=t.cat_key||'other';catTotals[k]=(catTotals[k]||0)+Math.abs(t.amount);});
+  const entries=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!entries.length){el(legId).innerHTML='';return;}
+  const palette=['#4f8ef7','#f16b6b','#f5a623','#9b8afb','#4ecdc4','#f093fb','#56c596','#ffd93d'];
+  mkChart(canvasId,'doughnut',{
+    labels:entries.map(([k])=>CATS[k]?.label||k),
+    datasets:[{data:entries.map(([,v])=>v),backgroundColor:palette,borderWidth:2,borderColor:'#0c0c0e',hoverOffset:4}]
+  },{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#111',callbacks:{label:c=>' '+fmt(c.raw)}}}});
+  el(legId).innerHTML=entries.map(([k,v],i)=>`<div class="dleg-item"><div class="dleg-dot" style="background:${palette[i]}"></div>${CATS[k]?.label||k} <span style="color:var(--tx)">${fmtK(v)}</span></div>`).join('');
+}
+
+function renderBars(containerId, acctId) {
+  const txns=getTxns(acctId).filter(t=>t.amount<0&&t.cat_key!=='transfer');
+  const totals={};
+  txns.forEach(t=>{const k=t.cat_key||'other';totals[k]=(totals[k]||0)+Math.abs(t.amount);});
+  const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max=sorted[0]?.[1]||1;
+  el(containerId).innerHTML=sorted.map(([k,v])=>{
+    const pct=Math.round(v/max*100);
+    const c=CATS[k]||{label:k,icon:'•'};
+    return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span style="font-size:13px;width:20px;text-align:center">${c.icon}</span>
+      <span style="width:110px;font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.label}</span>
+      <div style="flex:1;height:8px;background:var(--s3);border-radius:4px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:var(--grn);border-radius:4px;opacity:.7"></div>
+      </div>
+      <span style="width:68px;text-align:right;font-size:12px;color:var(--tx)">${fmt(v)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── TRANSACTION TABLE ────────────────────────────────────────
+function getFiltered(ctx) {
+  const isAll = ctx==='all';
+  const search= (el(ctx+'-search')?.value||'').toLowerCase();
+  const cat   = el(ctx+'-cat')?.value||'';
+  const sort  = el(ctx+'-sort')?.value||'date-desc';
+  const acctF = isAll?(el('all-acct')?.value||''):currentAcctId;
+  const tab   = pageState[ctx].tab;
+
+  let txns = acctF ? DB.transactions.filter(t=>t.accountId===acctF) : [...DB.transactions];
+  if(tab==='deposits')    txns=txns.filter(t=>t.amount>0);
+  if(tab==='withdrawals') txns=txns.filter(t=>t.amount<0);
+  if(search) txns=txns.filter(t=>(t.desc||'').toLowerCase().includes(search)||(t.cat_label||'').toLowerCase().includes(search));
+  if(cat)    txns=txns.filter(t=>t.cat_key===cat);
+  if(sort==='date-asc')   txns.sort((a,b)=>a.date.localeCompare(b.date));
+  else if(sort==='amt-desc')  txns.sort((a,b)=>Math.abs(b.amount)-Math.abs(a.amount));
+  else if(sort==='desc-asc')  txns.sort((a,b)=>(a.desc||'').localeCompare(b.desc||''));
+  else if(sort==='desc-desc') txns.sort((a,b)=>(b.desc||'').localeCompare(a.desc||''));
+  else txns.sort((a,b)=>b.date.localeCompare(a.date));
+  return txns;
+}
+
+function renderTxnTable(ctx) {
+  pageState[ctx].page=1;
+  renderTxnPage(ctx,getFiltered(ctx));
+}
+
+function renderTxnPage(ctx, txns) {
+  const pg   = pageState[ctx].page;
+  const tot  = txns.length;
+  const st   = (pg-1)*PG;
+  const sl   = txns.slice(st,st+PG);
+  const isAll= ctx==='all';
+  const tbId = ctx+'-tbody';
+  const piId = ctx+'-pi';
+
+  el(piId).textContent=`${(st+1).toLocaleString()}–${Math.min(st+PG,tot).toLocaleString()} of ${tot.toLocaleString()} transactions`;
+  el(ctx+'-prev').disabled=pg<=1;
+  el(ctx+'-next').disabled=st+PG>=tot;
+
+  el(tbId).innerHTML=sl.map(t=>{
+    const a=getAcct(t.accountId);
+    return`<tr onclick="void(0)">
+      <td class="mono" style="font-size:11px;color:var(--t2);white-space:nowrap">${t.date||'—'}</td>
+      <td style="max-width:${isAll?'220':'280'}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.desc||''}">${t.desc||'—'}</td>
+      <td><span class="pill pill-pur ${t.cat_manual?'pill-amb':''} cat-pill" style="cursor:pointer" title="Click to change category" data-txnid="${t.id}">${t.cat_label||'Other'}${t.cat_manual?'*':''}</span></td>
+      ${isAll?`<td style="font-size:11px;color:var(--t2)">${a?a.name:'—'}</td>`:''}
+      <td class="r mono ${t.amount>0?'pos':'neg'}" style="white-space:nowrap">${t.amount>0?'+':''}${fmt(t.amount)}</td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="${isAll?5:4}" style="text-align:center;padding:2rem;color:var(--t2)">No transactions match the current filters</td></tr>`;
+
+  // Listener is on the stable .content div (set up once at init) — nothing here
+
+  // Update subtitle
+  if(isAll){
+    const sub = el('all-sub');
+    if(sub){const totAmt=txns.reduce((s,t)=>s+t.amount,0);sub.textContent=`${tot.toLocaleString()} transactions · net ${fmt(totAmt)}`;}
+  }
+}
+
+function populateAllFilters() {
+  // Account filter
+  const as=el('all-acct');
+  const prev=as.value;
+  as.innerHTML='<option value="">All accounts</option>'+DB.accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  if(prev&&DB.accounts.find(a=>a.id===prev))as.value=prev;
+  // Category filter
+  const cs=el('all-cat');
+  const cprev=cs.value;
+  const usedCats=[...new Set(DB.transactions.map(t=>t.cat_key))];
+  cs.innerHTML='<option value="">All categories</option>'+usedCats.map(k=>CATS[k]?`<option value="${k}">${CATS[k].label}</option>`:null).filter(Boolean).join('');
+  if(cprev)cs.value=cprev;
+}
+
+// ── CATEGORIES ───────────────────────────────────────────────
+function renderCategories() {
+  const txns=DB.transactions;
+  const map={};
+  txns.forEach(t=>{const k=t.cat_key||'other';if(!map[k])map[k]={key:k,label:t.cat_label||'Other',count:0,total:0};map[k].count++;map[k].total+=t.amount;});
+  const rows=Object.values(map).sort((a,b)=>Math.abs(b.total)-Math.abs(a.total));
+  if(!rows.length){el('cats-body').innerHTML='<div class="empty-state"><div class="empty-icon">◎</div><div class="empty-title">No data</div></div>';return;}
+  el('cats-body').innerHTML='<div class="tbl-wrap"><table><thead><tr><th>Category</th><th>Transactions</th><th class="r">Total</th><th class="r">Avg</th></tr></thead><tbody>'+
+    rows.map(r=>`<tr><td><span class="pill pill-pur">${CATS[r.key]?.icon||'•'} ${r.label}</span></td><td class="mono" style="color:var(--t2)">${r.count}</td><td class="r mono ${r.total>=0?'pos':'neg'}">${r.total>=0?'+':''}${fmt(r.total)}</td><td class="r mono" style="color:var(--t2)">${fmt(r.total/r.count)}</td></tr>`).join('')+
+    '</tbody></table></div>';
+}
+
+// ── MERCHANTS ────────────────────────────────────────────────
+function buildVendorGroups() {
+  const map={};
+  DB.transactions.forEach(t=>{
+    const key=normVendor(t.desc);if(!key)return;
+    if(!map[key])map[key]={key,sample:t.desc,cat_key:t.cat_key,cat_label:t.cat_label,txns:[],total:0,accounts:[]};
+    map[key].txns.push(t);map[key].total+=Math.abs(t.amount);
+    if(!map[key].accounts.includes(t.accountId))map[key].accounts.push(t.accountId);
+  });
+  return Object.values(map).sort((a,b)=>b.total-a.total);
+}
+function renderMerchants() {
+  const grps=buildVendorGroups().slice(0,50);
+  if(!grps.length){el('merchants-body').innerHTML='<div class="empty-state"><div class="empty-icon">⊞</div><div class="empty-title">No data</div></div>';return;}
+  el('merchants-body').innerHTML='<div class="tbl-wrap"><table><thead><tr><th>Merchant</th><th>Category</th><th>Transactions</th><th>Accounts</th><th class="r">Total Spent</th></tr></thead><tbody>'+
+    grps.map(g=>`<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500">${cleanDesc(g.sample)||g.key}</td><td><span class="pill pill-pur">${g.cat_label||'Other'}</span></td><td class="mono" style="color:var(--t2)">${g.txns.length}</td><td class="mono" style="color:var(--t2)">${g.accounts.length}</td><td class="r mono neg">${fmt(g.total)}</td></tr>`).join('')+
+    '</tbody></table></div>';
+}
+
+// ── RECONCILE ────────────────────────────────────────────────
+const recFlags={}, recNotes={};
+function renderReconcile() {
+  const grps=buildVendorGroups().filter(g=>g.accounts.length>1);
+  if(!grps.length){el('rec-body').innerHTML='<div class="empty-state"><div class="empty-icon">⇌</div><div class="empty-title">No cross-account vendors</div><div class="empty-sub">No vendors found appearing on multiple accounts</div></div>';return;}
+  el('rec-body').innerHTML='<div class="tbl-wrap">'+grps.map(g=>{
+    const flag=recFlags[g.key]||'review';
+    const note=recNotes[g.key]||'';
+    const acctNames=g.accounts.map(id=>getAcct(id)?.name||id).join(' · ');
+    return`<div class="rec-row" id="rec-${g.key}">
+      <div class="rec-name">
+        <div style="font-weight:500;font-size:12px">${cleanDesc(g.sample)||g.key}</div>
+        <div style="font-size:10px;color:var(--t3)">${acctNames}</div>
+        ${note?`<div style="font-size:10px;color:var(--amb);margin-top:2px">📝 ${note}</div>`:''}
+      </div>
+      <div style="font-size:12px;color:var(--t2);white-space:nowrap">${g.txns.length} txn${g.txns.length!==1?'s':''}</div>
+      <div class="mono neg" style="white-space:nowrap">${fmt(g.total)}</div>
+      <div class="rec-actions">
+        <button class="flag-btn ${flag==='ok'?'ok':''}" data-key="${g.key}" data-flag="ok" onclick="setRecFlag(this)">✓ OK</button>
+        <button class="flag-btn ${flag==='flag'?'flag':''}" data-key="${g.key}" data-flag="flag" onclick="setRecFlag(this)">⚑ Flag</button>
+        <button class="flag-btn" data-key="${g.key}" onclick="openRecNote(this.dataset.key,event)" title="Add note">📝</button>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function setRecFlag(btn) {
+  const{key,flag}=btn.dataset;
+  recFlags[key]=flag;
+  renderReconcile();
+}
+function openRecNote(key) {
+  el('note-vendor-label').textContent=key;
+  el('note-text').value=recNotes[key]||'';
+  el('note-text').dataset.key=key;
+  el('modal-note').style.display='flex';
+  setTimeout(()=>el('note-text').focus(),80);
+}
+function saveNote() {
+  const key=el('note-text').dataset.key;
+  recNotes[key]=(el('note-text').value||'').trim();
+  closeModal('note');
+  renderReconcile();
+}
+function exportReconcileCSV() {
+  const grps=buildVendorGroups().filter(g=>g.accounts.length>1);
+  let csv='Vendor,Category,Accounts,Transactions,Total Spent,Status,Note\n';
+  grps.forEach(g=>{
+    const acctNames=g.accounts.map(id=>getAcct(id)?.name||'?').join(' | ');
+    const status=recFlags[g.key]||'review';
+    const note=(recNotes[g.key]||'').replace(/,/g,';');
+    csv+=`"${(cleanDesc(g.sample)||g.key).replace(/"/g,"'")}","${g.cat_label}","${acctNames}",${g.txns.length},$${g.total.toFixed(2)},${status},"${note}"\n`;
+  });
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='Eldredge_Reconcile_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+// ── INSIGHTS ─────────────────────────────────────────────────
+function renderInsights() {
+  const txns=DB.transactions;
+  if(!txns.length){el('insights-body').innerHTML='<div class="empty-state"><div class="empty-icon">◉</div><div class="empty-title">No data</div></div>';return;}
+  const outflow=txns.filter(t=>t.amount<0);
+  const topCat={};
+  outflow.forEach(t=>{const k=t.cat_key||'other';topCat[k]=(topCat[k]||0)+Math.abs(t.amount);});
+  const largest=Object.entries(topCat).sort((a,b)=>b[1]-a[1])[0];
+  const overdrafts=txns.filter(t=>t.cat_key==='fees'&&(t.desc||'').toLowerCase().includes('overdraft'));
+  const months={};
+  txns.forEach(t=>{const m=t.date?.slice(0,7);if(!m)return;if(!months[m])months[m]=0;months[m]+=t.amount;});
+  const monthEntries=Object.entries(months).sort();
+  const avgNet=monthEntries.length?monthEntries.reduce((s,[,v])=>s+v,0)/monthEntries.length:0;
+
+  let html='<div style="display:grid;gap:16px;">';
+  if(largest)html+=`<div class="chart-box"><div class="chart-title">💡 Top spending category</div><div style="font-family:'Fraunces',serif;font-size:26px;font-weight:300;color:var(--amb)">${CATS[largest[0]]?.label||largest[0]}</div><div style="font-size:12px;color:var(--t2);margin-top:4px">${fmt(largest[1])} total · ${pct(largest[1],outflow.reduce((s,t)=>s+Math.abs(t.amount),0))}% of all outflows</div></div>`;
+  if(overdrafts.length)html+=`<div class="chart-box" style="border-color:rgba(241,107,107,.3)"><div class="chart-title" style="color:var(--red)">⚠ Overdraft fees detected</div><div style="font-family:'Fraunces',serif;font-size:26px;font-weight:300;color:var(--red)">${fmt(overdrafts.reduce((s,t)=>s+Math.abs(t.amount),0))}</div><div style="font-size:12px;color:var(--t2);margin-top:4px">${overdrafts.length} fee${overdrafts.length!==1?'s':''} — consider cash management improvements</div></div>`;
+  html+=`<div class="chart-box"><div class="chart-title">📈 Average monthly net cash flow</div><div style="font-family:'Fraunces',serif;font-size:26px;font-weight:300;color:${avgNet>=0?'var(--grn)':'var(--red)'}">${fmt(avgNet)}</div><div style="font-size:12px;color:var(--t2);margin-top:4px">Across ${monthEntries.length} month${monthEntries.length!==1?'s':''} of data</div></div>`;
+  html+='</div>';
+  el('insights-body').innerHTML=html;
+}
+function pct(a,b){return b>0?Math.round(a/b*100)+'%':'0%';}
+
+// ── SIDEBAR ─────────────────────────────────────────────────
+function renderSidebar() {
+  el('acct-nav').innerHTML=DB.accounts.map(a=>`
+    <button class="nb" id="nav-acct-${a.id}" onclick="showAcctPage('${a.id}')">
+      <span class="dot" style="background:${a.color}"></span>
+      ${a.name.slice(0,22)}
+    </button>`).join('');
+}
+
+// ── ADD ACCOUNT ───────────────────────────────────────────────
+let selectedColor = COLORS[0];
+function openAddAccount() {
+  selectedColor=COLORS[0];
+  el('acct-name').value=''; el('acct-type').value='checking';
+  el('cpick').innerHTML=COLORS.map((c,i)=>`<span style="background:${c}" class="${i===0?'sel':''}" onclick="pickColor('${c}',this)"></span>`).join('');
+  el('modal-acct').style.display='flex';
+  setTimeout(()=>el('acct-name').focus(),80);
+}
+function pickColor(c, el_) {
+  selectedColor=c;
+  document.querySelectorAll('.cpick span').forEach(s=>s.classList.remove('sel'));
+  el_.classList.add('sel');
+}
+function saveNewAccount() {
+  const name=(el('acct-name').value||'').trim();
+  if(!name){alert('Account name is required.');return;}
+  const acct={id:uid(),name,type:el('acct-type').value,color:selectedColor,created:new Date().toISOString()};
+  DB.accounts.push(acct);
+  dbSave();
+  closeModal('acct');
+  renderSidebar();
+  renderOverview();
+  showAcctPage(acct.id);
+}
+function deleteAcct(id) {
+  if(!confirm('Delete this account and all its transactions?'))return;
+  DB.accounts=DB.accounts.filter(a=>a.id!==id);
+  DB.transactions=DB.transactions.filter(t=>t.accountId!==id);
+  dbSave(); renderSidebar();
+  nav('overview',el('nav-overview'));
+}
+function deleteCurrentAcct(){deleteAcct(currentAcctId);}
+
+// ── IMPORT ──────────────────────────────────────────────────
+let pendingImport=null, importMode='csv';
+
+function setImportMode(mode) {
+  importMode=mode;
+  el('itab-csv').classList.toggle('active',mode==='csv');
+  el('itab-paste').classList.toggle('active',mode==='paste');
+  el('import-csv-mode').style.display=mode==='csv'?'block':'none';
+  el('import-paste-mode').style.display=mode==='paste'?'block':'none';
+  el('import-ok').style.display='none';
+  if(mode==='paste'&&el('paste-text').value.trim())previewPaste();
+}
+
+function openImport(){openImportFor(currentAcctId);}
+function openImportCurrent(){openImportFor(currentAcctId);}
+function openImportFor(acctId) {
+  if(!DB.accounts.length){alert('Add an account first.');openAddAccount();return;}
+  pendingImport=null; resetDropZone();
+  el('import-ok').style.display='none';
+  el('import-preview').innerHTML='';
+  const pt=el('paste-text');if(pt){pt.value='';el('paste-preview').innerHTML='';}
+  el('import-acct-sel').innerHTML=DB.accounts.map(a=>`<option value="${a.id}"${a.id===acctId?' selected':''}>${a.name}</option>`).join('');
+  importMode='csv'; setImportMode('csv');
+  el('modal-import').style.display='flex';
+}
+
+function resetDropZone() {
+  const dz=el('dz');if(!dz)return;
+  dz.classList.remove('drag');
+  dz.innerHTML='<div class="dz-icon">📂</div><strong>Drop CSV here or click to browse</strong><p>Supports most bank export formats</p>';
+  dz.onclick=()=>document.getElementById('csv-file').click();
+}
+function handleDrop(e) {
+  e.preventDefault(); el('dz').classList.remove('drag');
+  const f=e.dataTransfer.files[0]; if(f)readFile(f);
+}
+function handleFileInput(inp) {
+  const f=inp.files[0]; if(f)readFile(f); inp.value='';
+}
+function readFile(file) {
+  el('dz').innerHTML=`<div class="dz-icon">⏳</div>Reading ${file.name}…`;
+  el('dz').onclick=null;
+  const r=new FileReader(); r.onload=e=>processCSV(e.target.result,file.name); r.readAsText(file);
+}
+function processCSV(text, filename) {
+  const result=parseCSV(text);
+  if(!result||!result.rows.length){el('import-preview').innerHTML='<div style="color:var(--red);font-size:12px">⚠ Could not parse. Make sure the file has Date and Amount columns.</div>';return;}
+  pendingImport={rows:result.rows,filename};
+  el('dz').innerHTML=`<div class="dz-icon">✅</div><strong>${result.rows.length} transactions found</strong><p>${filename}</p>`;
+  el('import-ok').style.display='inline-flex';
+  el('import-ok').textContent=`Import ${result.rows.length} Transactions`;
+  el('import-preview').innerHTML=`<div style="font-size:11px;color:var(--t2)">${result.rows.slice(0,3).map(r=>`${r.date} · ${r.desc?.slice(0,30)} · <span class="${r.amount>=0?'pos':'neg'}">${fmt(r.amount)}</span>`).join('<br>')}</div>`;
+}
+function parseCSV(text) {
+  const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
+  if(lines.length<2)return null;
+  const parseCols=line=>{const c=[];let cur='',inQ=false;for(const ch of line){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){c.push(cur.trim());cur='';}else cur+=ch;}c.push(cur.trim());return c;};
+  const hdr=parseCols(lines[0]).map(h=>h.replace(/"/g,'').toLowerCase().trim());
+  const di=hdr.findIndex(h=>h.includes('date'));
+  const ai=hdr.findIndex(h=>h.includes('amount')||h.includes('debit')||h.includes('credit'));
+  const desi=hdr.findIndex(h=>h.includes('desc')||h.includes('memo')||h.includes('detail')||h.includes('narr'));
+  if(di<0||ai<0)return null;
+  const rows=lines.slice(1).map(line=>{
+    const c=parseCols(line);
+    const rawDate=c[di]?.replace(/"/g,'').trim();
+    const rawAmt=c[ai]?.replace(/[^0-9.\-]/g,'');
+    const rawDesc=desi>=0?c[desi]?.replace(/"/g,'').trim():'';
+    const d=parseDate(rawDate);
+    const amt=parseFloat(rawAmt)||0;
+    if(!d||amt===0)return null;
+    const cat=categorize(rawDesc||'');
+    return{date:d,desc:rawDesc||'',amount:amt,...cat};
+  }).filter(Boolean);
+  return{rows};
+}
+function parseDate(s) {
+  if(!s)return null;
+  s=s.trim().split(' ')[0];
+  const m=s.split(/[\/\-]/);
+  if(m.length===3){
+    if(m[2].length===4)return m[2]+'-'+m[0].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+    if(m[0].length===4)return m[0]+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  }
+  return null;
+}
+function confirmImport() {
+  const acctId=el('import-acct-sel').value;
+  if(!acctId){alert('Select an account first.');return;}
+  let rows,filename;
+  if(importMode==='paste'){
+    const raw=(el('paste-text').value||'').trim();
+    if(!raw){alert('Paste area is empty.');return;}
+    rows=parseBankText(raw);
+    if(!rows.length){alert('Could not parse transactions. Check the format.');return;}
+    filename='Pasted statement ('+new Date().toLocaleDateString()+')';
+  } else {
+    if(!pendingImport){alert('Please load a CSV file first.');return;}
+    rows=pendingImport.rows; filename=pendingImport.filename;
+  }
+  const newTxns=rows.map(r=>({id:uid(),accountId:acctId,...r}));
+  DB.transactions.push(...newTxns);
+  DB.imports=DB.imports||[];
+  DB.imports.push({id:uid(),accountId:acctId,filename,date:new Date().toISOString(),count:newTxns.length});
+  dbSave(); closeModal('import'); pendingImport=null;
+  const pt=el('paste-text');if(pt)pt.value='';
+  renderSidebar(); renderOverview();
+  if(currentAcctId===acctId)renderAcctDetail(acctId);
+}
+
+// ── PASTE PARSER ─────────────────────────────────────────────
+function parseBankText(raw) {
+  const lines=raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  const txns=[];
+  const SKIP=['transaction posted date','transaction description','transaction amount','balance','view details'];
+  const isDate=s=>/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s);
+  const isAmt =s=>/^[+\-]{1,2}\$[\d,]+(\.\d+)?$/.test(s);
+  const isBal =s=>/^\$[\d,]+(\.\d+)?$/.test(s);
+  const normD =s=>{try{const d=new Date(s);if(!isNaN(d))return d.toISOString().slice(0,10);}catch(e){}return s;};
+  let i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    if(SKIP.includes(line.toLowerCase())){i++;continue;}
+    if(isDate(line)){
+      const date=normD(line);i++;
+      let desc='';
+      while(i<lines.length&&!isAmt(lines[i])&&!isDate(lines[i])&&!SKIP.includes(lines[i].toLowerCase())){
+        if(desc)desc+=' ';desc+=lines[i];i++;
+      }
+      if(i>=lines.length||!isAmt(lines[i]))continue;
+      const ar=lines[i];
+      const isCredit=ar.startsWith('++');
+      const amt=parseFloat(ar.replace(/[+\-$,]/g,''))*(isCredit?1:-1);
+      i++;
+      if(i<lines.length&&isBal(lines[i]))i++;
+      if(desc&&amt!==0){const cat=categorize(desc);txns.push({date,desc:desc.trim(),amount:amt,...cat});}
+    }else{i++;}
+  }
+  return txns;
+}
+function previewPaste() {
+  const raw=(el('paste-text').value||'').trim();
+  if(!raw){el('paste-preview').innerHTML='';el('import-ok').style.display='none';return;}
+  const txns=parseBankText(raw);
+  if(!txns.length){el('paste-preview').innerHTML='<span class="parse-err">⚠ Could not parse — copy date, description, amount and balance lines from your bank.</span>';el('import-ok').style.display='none';return;}
+  const credits=txns.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+  const debits =Math.abs(txns.filter(t=>t.amount<0).reduce((s,t)=>s+t.amount,0));
+  const dates=txns.map(t=>t.date).sort();
+  const range=dates.length>1?dates[0]+' → '+dates[dates.length-1]:dates[0]||'';
+  el('paste-preview').innerHTML=`<span class="parse-ok">✓ ${txns.length} transactions${range?' ('+range+')':''} · +$${Math.round(credits).toLocaleString()} in · -$${Math.round(debits).toLocaleString()} out</span>`;
+  el('import-ok').style.display='inline-flex';
+  el('import-ok').textContent=`Import ${txns.length} Transactions`;
+}
+
+// ── EXPORT CURRENT VIEW ──────────────────────────────────────
+function exportCurrentView(ctx) {
+  const XLSX=window.XLSX;
+  if(!XLSX){alert('Export library loading — please try again in a moment.');return;}
+
+  const txns=getFiltered(ctx);
+  if(!txns.length){alert('No transactions match the current filters.');return;}
+
+  const isAll=(ctx==='all');
+  const acct=isAll?null:getAcct(currentAcctId);
+  const acctName=acct?acct.name:'All Accounts';
+  const tab=pageState[ctx]?.tab||'all';
+  const search=(el(ctx+'-search')?.value||'').trim();
+  const cat=el(ctx+'-cat')?.value||'';
+  const tabLabel=tab==='deposits'?'Deposits':tab==='withdrawals'?'Withdrawals':'All Transactions';
+
+  // Meta rows
+  const meta=[
+    ['Eldredge Cleaning — Transaction Export'],
+    ['Account',acctName],
+    ['View',tabLabel],
+  ];
+  if(search)meta.push(['Search filter',search]);
+  if(cat)meta.push(['Category filter',CATS[cat]?.label||cat]);
+  meta.push(['Exported',new Date().toLocaleString()]);
+  meta.push(['Total rows',txns.length]);
+  meta.push([]);
+
+  // Data rows
+  const rows=txns.map(t=>({
+    'Date':t.date||'',
+    'Description':t.desc||'',
+    'Category':t.cat_label||'',
+    'Amount':parseFloat((t.amount||0).toFixed(2)),
+    'Type':t.amount>0?'Deposit':'Withdrawal',
+    'Account':isAll?(getAcct(t.accountId)?.name||t.accountId):acctName,
+  }));
+
+  // Summary
+  const totDep=txns.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+  const totWith=txns.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const totNet=txns.reduce((s,t)=>s+t.amount,0);
+
+  const wb=XLSX.utils.book_new();
+
+  // Sheet 1 — Transactions
+  const ws=XLSX.utils.aoa_to_sheet(meta);
+  XLSX.utils.sheet_add_json(ws,rows,{origin:meta.length});
+
+  // Summary below data
+  const sumStart=meta.length+rows.length+2;
+  XLSX.utils.sheet_add_aoa(ws,[
+    [],
+    ['SUMMARY'],
+    ['Total Deposits',   parseFloat(totDep.toFixed(2))],
+    ['Total Withdrawals',parseFloat(totWith.toFixed(2))],
+    ['Net',              parseFloat(totNet.toFixed(2))],
+    ['Transactions',     txns.length],
+  ],{origin:sumStart});
+
+  ws['!cols']=[{wch:12},{wch:42},{wch:18},{wch:12},{wch:12},{wch:26}];
+  XLSX.utils.book_append_sheet(wb,ws,'Transactions');
+
+  // Sheet 2 — Category breakdown
+  const catMap={};
+  txns.forEach(t=>{const k=t.cat_label||'Uncategorized';if(!catMap[k])catMap[k]={label:k,count:0,total:0};catMap[k].count++;catMap[k].total+=t.amount;});
+  const catRows=Object.values(catMap).sort((a,b)=>Math.abs(b.total)-Math.abs(a.total)).map(c=>({'Category':c.label,'Transactions':c.count,'Total':parseFloat(c.total.toFixed(2))}));
+  if(catRows.length){const ws2=XLSX.utils.json_to_sheet(catRows);ws2['!cols']=[{wch:22},{wch:14},{wch:12}];XLSX.utils.book_append_sheet(wb,ws2,'By Category');}
+
+  const safeName=acctName.replace(/[^a-zA-Z0-9]/g,'_').replace(/_+/g,'_').slice(0,30);
+  const safeTab=tabLabel.replace(/\s+/g,'_');
+  XLSX.writeFile(wb,`Eldredge_${safeName}_${safeTab}_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ── UTILS ────────────────────────────────────────────────────
+function clearAll(){if(!confirm('Delete ALL data permanently?'))return;DB={accounts:[],transactions:[],imports:[]};dbSave();renderSidebar();nav('overview',el('nav-overview'));}
+
+function pruneOldData() {
+  const txnCount = DB.transactions.length;
+  if (!txnCount) { alert('No transactions to remove.'); return; }
+  const msg = [
+    `You have ${txnCount.toLocaleString()} transactions stored.`,
+    '',
+    'Options:',
+    '• Export first with ↓ Export, then delete accounts you no longer need',
+    '• Or enter a cut-off date below to remove older transactions',
+    '',
+    'Enter a cut-off date (transactions BEFORE this date will be deleted):',
+  ].join('\n');
+  const cutoff = prompt(msg, new Date(Date.now() - 365*24*60*60*1000).toISOString().slice(0,10));
+  if (!cutoff) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(cutoff)) { alert('Invalid date — use YYYY-MM-DD format.'); return; }
+  const before = DB.transactions.filter(t => (t.date||'') < cutoff).length;
+  if (!before) { alert(`No transactions found before ${cutoff}.`); return; }
+  if (!confirm(`Delete ${before.toLocaleString()} transactions before ${cutoff}?\n\nThis cannot be undone. Export first if you need them.`)) return;
+  DB.transactions = DB.transactions.filter(t => (t.date||'') >= cutoff);
+  dbSave();
+  renderSidebar();
+  renderOverview();
+  if (currentAcctId) renderAcctDetail(currentAcctId);
+  showToast(`✓ Removed ${before.toLocaleString()} transactions before ${cutoff}`);
+}
+function openModal(id){el('modal-'+id).style.display='flex';}
+function closeModal(id){el('modal-'+id).style.display='none';}
+
+// ── RULES ENGINE ─────────────────────────────────────────────
+
+function renderRules() {
+  const rules = DB.rules||[];
+  if (!rules.length) {
+    el('rules-body').innerHTML=`<div class="empty-state">
+      <div class="empty-icon">⌘</div>
+      <div class="empty-title">No rules yet</div>
+      <div class="empty-sub">Add a keyword rule to auto-categorize transactions.<br>Rules take priority over built-in keyword matching.</div>
+      <button class="btn pri" onclick="openAddRule()" style="margin-top:1rem">＋ Add First Rule</button>
+    </div>`;
+    return;
+  }
+
+  // Count matches per rule
+  const counts={};
+  DB.transactions.forEach(t=>{
+    if(t.cat_rule)counts[t.cat_rule]=(counts[t.cat_rule]||0)+1;
+  });
+
+  el('rules-body').innerHTML=`
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Keyword</th><th>Category</th><th>Type Filter</th>
+          <th class="r">Matches</th><th>Priority</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rules.map((r,i)=>{
+            const cat=CATS[r.cat_key]||{label:r.cat_key,icon:'•'};
+            const matches=counts[r.id]||0;
+            return`<tr>
+              <td style="font-weight:500;font-family:'DM Mono',monospace">${r.keyword}</td>
+              <td><span class="pill pill-pur">${cat.icon} ${cat.label}</span></td>
+              <td style="font-size:11px;color:var(--t2)">${r.type==='deposit'?'Deposits only':r.type==='withdrawal'?'Withdrawals only':'Any'}</td>
+              <td class="r mono" style="color:${matches>0?'var(--grn)':'var(--t3)'}">${matches.toLocaleString()}</td>
+              <td>
+                <div style="display:flex;gap:3px">
+                  ${i>0?`<button class="flag-btn" data-i="${i}" data-dir="-1" onclick="moveRule(this)">↑</button>`:'<span style="width:28px"></span>'}
+                  ${i<rules.length-1?`<button class="flag-btn" data-i="${i}" data-dir="1" onclick="moveRule(this)">↓</button>`:''}
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;gap:4px">
+                  <button class="flag-btn" data-id="${r.id}" onclick="openEditRule(this.dataset.id)">Edit</button>
+                  <button class="flag-btn" data-id="${r.id}" onclick="deleteRule(this.dataset.id)" style="color:var(--red)">×</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--t3);padding:0 2px">
+      Rules are checked top-to-bottom. Drag ↑↓ to change priority. Click <strong>↺ Re-apply to All</strong> to update existing transactions.
+    </div>`;
+}
+
+function openAddRule() {
+  el('rule-modal-title').textContent='Add Category Rule';
+  el('rule-edit-id').value='';
+  el('rule-keyword').value='';
+  el('rule-cat').value='other';
+  el('rule-type').value='';
+  el('rule-test-result').style.display='none';
+  el('modal-rule').style.display='flex';
+  setTimeout(()=>el('rule-keyword').focus(),80);
+}
+
+function openEditRule(id) {
+  const rule=(DB.rules||[]).find(r=>r.id===id);
+  if(!rule)return;
+  el('rule-modal-title').textContent='Edit Rule';
+  el('rule-edit-id').value=id;
+  el('rule-keyword').value=rule.keyword;
+  el('rule-cat').value=rule.cat_key;
+  el('rule-type').value=rule.type||'';
+  testRule();
+  el('modal-rule').style.display='flex';
+  setTimeout(()=>el('rule-keyword').focus(),80);
+}
+
+function testRule() {
+  const kw=(el('rule-keyword').value||'').trim().toLowerCase();
+  const type=el('rule-type').value;
+  const res=el('rule-test-result');
+  if(!kw){res.style.display='none';return;}
+  // Find matches in current transactions
+  let matches=DB.transactions.filter(t=>(t.desc||'').toLowerCase().includes(kw));
+  if(type==='deposit')    matches=matches.filter(t=>t.amount>0);
+  if(type==='withdrawal') matches=matches.filter(t=>t.amount<0);
+  if(!matches.length){
+    res.style.display='block';
+    res.innerHTML=`<span style="color:var(--t3)">No existing transactions match "<strong>${kw}</strong>"</span>`;
+    return;
+  }
+  const samples=matches.slice(0,3).map(t=>`<div style="color:var(--t2);margin-top:3px;font-size:11px">→ ${t.desc?.slice(0,50)||''}${t.desc?.length>50?'…':''}</div>`).join('');
+  res.style.display='block';
+  res.innerHTML=`<span style="color:var(--grn)">✓ Matches <strong>${matches.length.toLocaleString()}</strong> existing transaction${matches.length!==1?'s':''}</span>${samples}${matches.length>3?`<div style="color:var(--t3);font-size:10px;margin-top:2px">...and ${matches.length-3} more</div>`:''}`;
+}
+
+function saveRule() {
+  const kw=(el('rule-keyword').value||'').trim();
+  if(!kw){alert('Keyword is required.');el('rule-keyword').focus();return;}
+  const catKey=el('rule-cat').value;
+  const type=el('rule-type').value;
+  const editId=el('rule-edit-id').value;
+  if(!DB.rules)DB.rules=[];
+
+  if(editId){
+    const idx=DB.rules.findIndex(r=>r.id===editId);
+    if(idx>=0)DB.rules[idx]={...DB.rules[idx],keyword:kw,cat_key:catKey,type};
+  } else {
+    DB.rules.push({id:uid(),keyword:kw,cat_key:catKey,type,created:new Date().toISOString()});
+  }
+  dbSave();
+  closeModal('rule');
+  // Auto-apply the new/edited rule to existing transactions
+  reapplyAllRules(true);
+}
+
+function deleteRule(id) {
+  if(!confirm('Delete this rule?'))return;
+  DB.rules=(DB.rules||[]).filter(r=>r.id!==id);
+  dbSave();
+  reapplyAllRules(true);
+}
+
+function moveRule(btn) {
+  const i=parseInt(btn.dataset.i), dir=parseInt(btn.dataset.dir);
+  const rules=DB.rules||[];
+  if(i+dir<0||i+dir>=rules.length)return;
+  [rules[i],rules[i+dir]]=[rules[i+dir],rules[i]];
+  DB.rules=rules;
+  dbSave();
+  reapplyAllRules(true);
+}
+
+function reapplyAllRules(silent) {
+  let changed=0;
+  DB.transactions.forEach(t=>{
+    if(t.cat_manual)return; // skip manually-overridden transactions
+    const result=categorize(t.desc,t.amount);
+    if(result.cat_key!==t.cat_key||result.cat_label!==t.cat_label){
+      t.cat_key=result.cat_key;
+      t.cat_label=result.cat_label;
+      t.cat_rule=result.cat_rule||null;
+      changed++;
+    }
+  });
+  dbSave();
+  renderRules();
+  // Refresh current view
+  if(currentAcctId)renderAcctDetail(currentAcctId);
+  populateAllFilters();
+  renderTxnTable('all');
+  if(!silent)showToast(`✓ Re-applied rules — ${changed.toLocaleString()} transaction${changed!==1?'s':''} updated`);
+}
+
+// ── INLINE RE-CATEGORIZE (click a category pill in the table) ──
+// ── INLINE CATEGORIZE: pick category from popup ──────────────
+// Step 1: click pill → category picker popup
+// Step 2: pick category → if other transactions share the same desc, show scope dialog
+// Step 3: apply to one, all matching, or all matching + auto-create a rule
+
+// Shared state for the two-step flow
+const _catFlow = { txnId: null, catKey: null };
+
+function openInlineCat(txnId, anchorEl) {
+  const old = document.getElementById('cat-popup'); if (old) old.remove();
+  const txn = DB.transactions.find(t => t.id === txnId); if (!txn) return;
+  _catFlow.txnId = txnId;
+
+  const popup = document.createElement('div');
+  popup.id = 'cat-popup';
+  popup.style.cssText = 'position:fixed;z-index:500;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:6px;box-shadow:0 8px 28px rgba(0,0,0,.55);min-width:180px;max-height:320px;overflow-y:auto';
+  const rect = anchorEl.getBoundingClientRect();
+  const left = Math.min(rect.left, window.innerWidth - 200);
+  const top  = rect.bottom + 6;
+  popup.style.left = left + 'px';
+  popup.style.top  = (top + window.scrollY) + 'px';
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'font-size:9px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px 6px;border-bottom:1px solid var(--b1);margin-bottom:4px';
+  hdr.textContent = 'Assign category';
+  popup.appendChild(hdr);
+
+  Object.entries(CATS).forEach(([k, v]) => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px;border:none;background:${txn.cat_key===k?'var(--s3)':'none'};color:${txn.cat_key===k?'var(--tx)':'var(--t2)'};font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border-radius:6px;text-align:left;white-space:nowrap;transition:background .1s`;
+    btn.onmouseover = () => btn.style.background = 'var(--s3)';
+    btn.onmouseout  = () => btn.style.background = txn.cat_key===k ? 'var(--s3)' : 'none';
+    btn.innerHTML   = `<span style="width:16px;text-align:center">${v.icon}</span>${v.label}${txn.cat_key===k?' <span style="color:var(--grn);margin-left:auto">✓</span>':''}`;
+    btn.onclick = (e) => { e.stopPropagation(); popup.remove(); chooseCatScope(txnId, k); };
+    popup.appendChild(btn);
+  });
+
+  document.body.appendChild(popup);
+  setTimeout(() => document.addEventListener('click', function h(e) {
+    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', h); }
+  }, true), 0);
+}
+
+// Step 2 — decide scope (one / all matching / all + rule)
+function chooseCatScope(txnId, catKey) {
+  const txn = DB.transactions.find(t => t.id === txnId); if (!txn) return;
+  const cat = CATS[catKey];
+  _catFlow.txnId  = txnId;
+  _catFlow.catKey = catKey;
+
+  // Find all transactions that share the same normalized description
+  const norm = s => (s||'').toLowerCase().trim().replace(/\s+/g,' ');
+  const matchDesc = norm(txn.desc);
+  const matches = DB.transactions.filter(t => norm(t.desc) === matchDesc && t.id !== txnId);
+  const alreadyMatch = matches.filter(t => t.cat_key === catKey).length;
+  const needsUpdate  = matches.filter(t => t.cat_key !== catKey).length;
+
+  // If no other transactions share this description → just apply silently
+  if (!matches.length) {
+    applyCategory(txnId, catKey, 'one');
+    const ctx = currentAcctId ? 'ap' : 'all';
+    renderTxnPage(ctx, getFiltered(ctx));
+    showToast(`✓ Categorized as ${cat.label}`);
+    return;
+  }
+
+  // Build dialog
+  const dlg = document.createElement('div');
+  dlg.id = 'cat-scope-dlg';
+  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:600;backdrop-filter:blur(3px)';
+
+  const hasExistingRule = (DB.rules||[]).some(r => matchDesc.includes(r.keyword.toLowerCase()) && r.cat_key === catKey);
+  const ruleWord = (txn.desc||'').trim().split(/\s+/).slice(0,3).join(' ');
+
+  dlg.innerHTML = `
+    <div style="background:var(--s1);border:1px solid var(--b2);border-radius:14px;width:min(420px,92vw);padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:300;margin-bottom:.3rem">Assign category</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:1.25rem;line-height:1.7">
+        <span style="background:var(--s3);padding:2px 7px;border-radius:4px;font-size:11px">${(txn.desc||'').slice(0,52)}</span>
+        → <span class="pill pill-pur">${cat.icon} ${cat.label}</span>
+      </div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:1.25rem;padding:10px 12px;background:var(--s2);border-radius:8px;line-height:1.8">
+        <strong style="color:var(--tx)">${matches.length}</strong> other transaction${matches.length!==1?'s are':' is'} also named <em>"${(txn.desc||'').slice(0,40)}"</em>${needsUpdate>0?` — <strong style="color:var(--amb)">${needsUpdate}</strong> would be updated`:` — all already set to ${cat.label}`}.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button id="cs-one" style="display:flex;align-items:flex-start;gap:12px;width:100%;padding:12px 14px;border:1px solid var(--b2);border-radius:8px;background:none;color:var(--tx);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='none'">
+          <span style="font-size:18px;margin-top:1px">①</span>
+          <div><div style="font-weight:500">Just this transaction</div><div style="color:var(--t2);font-size:11px;margin-top:2px">Only this single entry is updated</div></div>
+        </button>
+        <button id="cs-all" style="display:flex;align-items:flex-start;gap:12px;width:100%;padding:12px 14px;border:1px solid ${needsUpdate>0?'rgba(79,142,247,.4)':'var(--b2)'};border-radius:8px;background:${needsUpdate>0?'rgba(79,142,247,.06)':'none'};color:var(--tx);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='${needsUpdate>0?'rgba(79,142,247,.06)':'none'}'">
+          <span style="font-size:18px;margin-top:1px">⊕</span>
+          <div><div style="font-weight:500">All ${matches.length + 1} matching transactions</div><div style="color:var(--t2);font-size:11px;margin-top:2px">Every transaction named "${(txn.desc||'').slice(0,30)}" → ${cat.label}</div></div>
+        </button>
+        ${!hasExistingRule ? `<button id="cs-rule" style="display:flex;align-items:flex-start;gap:12px;width:100%;padding:12px 14px;border:1px solid rgba(155,138,251,.4);border-radius:8px;background:rgba(155,138,251,.06);color:var(--tx);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;text-align:left;transition:all .15s" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='rgba(155,138,251,.06)'">
+          <span style="font-size:18px;margin-top:1px">⌘</span>
+          <div><div style="font-weight:500">All matching + save as rule</div><div style="color:var(--t2);font-size:11px;margin-top:2px">Updates all ${matches.length + 1} transactions <em>and</em> auto-categorizes future imports matching "<strong>${ruleWord}</strong>"</div></div>
+        </button>` : ''}
+      </div>
+      <div style="margin-top:1rem;display:flex;justify-content:flex-end">
+        <button id="cs-cancel" style="background:none;border:1px solid var(--b2);border-radius:7px;padding:7px 16px;color:var(--t2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer">Cancel</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(dlg);
+
+  dlg.querySelector('#cs-one').onclick = () => {
+    dlg.remove();
+    applyCategory(txnId, catKey, 'one');
+    const ctx = currentAcctId ? 'ap' : 'all';
+    renderTxnPage(ctx, getFiltered(ctx));
+    showToast(`✓ Categorized as ${cat.label}`);
+  };
+  dlg.querySelector('#cs-all').onclick = () => {
+    dlg.remove();
+    applyCategory(txnId, catKey, 'all');
+    const ctx = currentAcctId ? 'ap' : 'all';
+    renderTxnPage(ctx, getFiltered(ctx));
+    showToast(`✓ ${needsUpdate + 1} transaction${needsUpdate!==0?'s':''} set to ${cat.label}`);
+  };
+  const ruleBtn = dlg.querySelector('#cs-rule');
+  if (ruleBtn) ruleBtn.onclick = () => {
+    dlg.remove();
+    applyCategory(txnId, catKey, 'all');
+    // Create a rule using the first few significant words
+    if (!DB.rules) DB.rules = [];
+    DB.rules.push({ id: uid(), keyword: ruleWord.toLowerCase(), cat_key: catKey, type: '', created: new Date().toISOString() });
+    dbSave();
+    const ctx = currentAcctId ? 'ap' : 'all';
+    renderTxnPage(ctx, getFiltered(ctx));
+    showToast(`✓ ${needsUpdate + 1} transactions updated · Rule created: "${ruleWord}" → ${cat.label}`);
+    if (document.getElementById('page-rules').classList.contains('active')) renderRules();
+  };
+  dlg.querySelector('#cs-cancel').onclick = () => dlg.remove();
+  dlg.onclick = e => { if (e.target === dlg) dlg.remove(); };
+}
+
+// Core apply — marks transactions as manually set so reapplyAllRules won't overwrite
+function applyCategory(txnId, catKey, scope) {
+  const cat = CATS[catKey];
+  const norm = s => (s||'').toLowerCase().trim().replace(/\s+/g,' ');
+  const txn = DB.transactions.find(t => t.id === txnId); if (!txn) return;
+  const matchDesc = norm(txn.desc);
+
+  const targets = scope === 'all'
+    ? DB.transactions.filter(t => norm(t.desc) === matchDesc)
+    : [txn];
+
+  targets.forEach(t => {
+    t.cat_key    = catKey;
+    t.cat_label  = cat ? cat.label : catKey;
+    t.cat_manual = true;
+    t.cat_rule   = 'manual';
+  });
+  dbSave();
+}
+
+// Toast utility
+function showToast(msg) {
+  let t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.style.cssText='position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#0f0f0f;color:#fff;font-family:"DM Mono",monospace;font-size:12px;padding:10px 20px;border-radius:8px;z-index:9999;border:1px solid rgba(255,255,255,.15);box-shadow:0 4px 20px rgba(0,0,0,.4);transition:opacity .3s;pointer-events:none';document.body.appendChild(t);}
+  t.innerHTML=msg;t.style.opacity='1';
+  clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.opacity='0',4000);
+}
+
+// ══ INIT ═══════════════════════════════════════════════════
+const stored=dbLoad();
+let DB;
+if(stored&&stored.accounts){DB=stored;if(!DB.imports)DB.imports=[];if(!DB.rules)DB.rules=[];}
+else{DB={accounts:[],transactions:[],imports:[]};dbSave();}
+
+renderSidebar();
+renderOverview();
+// Show storage usage
+try {
+  const raw = localStorage.getItem(STORE);
+  if (raw) updStorageMeter(raw.length);
+} catch(e) {}
+
+// Single permanent delegated listener for category pills.
+// Attached to document so it survives any innerHTML replacement.
+document.addEventListener('click', function(e) {
+  const pill = e.target.closest('.cat-pill');
+  if (!pill) return;
+  e.stopPropagation();
+  openInlineCat(pill.dataset.txnid, pill);
+});
+</script>
+</body>
+</html>
